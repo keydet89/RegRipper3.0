@@ -6,6 +6,7 @@
 #
 # Refs:
 #		https://windows-internals.com/printdemon-cve-2020-1048/
+#   https://twitter.com/aionescu/status/1260466215299973121
 #
 # copyright 2020 Quantum Analytics Research, LLC
 # Author: H. Carvey, keydet89@yahoo.com
