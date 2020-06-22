@@ -49,7 +49,7 @@ sub pluginmain {
 	    foreach my $s (@subkeys) {
 		  	my $name = $s->get_name();
 		  	my $ts = $s->get_timestamp();
-		  	::rptMsg($name." - LastWrite time: ".::getDatefromEpoch($ts)."Z");
+		  	::rptMsg($name." - LastWrite time: ".::getDateFromEpoch($ts)."Z");
 		  	
 		  	my $path;
 		  	eval {

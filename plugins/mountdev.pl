@@ -50,7 +50,7 @@ sub pluginmain {
 	my %md;
 	if ($key = $root_key->get_subkey($key_path)) {
 		::rptMsg($key_path);
-		::rptMsg("LastWrite time = ".::getDatefromEpoch($key->get_timestamp())."Z");
+		::rptMsg("LastWrite time = ".::getDateFromEpoch($key->get_timestamp())."Z");
 		::rptMsg("");
 		my @vals = $key->get_list_of_values();
 		if (scalar(@vals) > 0) {
