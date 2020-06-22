@@ -1,9 +1,11 @@
 #-----------------------------------------------------------
-# adoberdr.pl
+# adobe.pl
 # Plugin for Registry Ripper 
 # Parse Adobe Reader MRU keys
 #
 # Change history
+#   20200622 - Updated code to check for app version
+#   20200620 - renamed "adoberdr.pl" to "adobe.pl", to capture Acrobat data, as well
 #   20200520 - minor updates
 #   20150717 - updated IAW Jason Hale's blog post (see ref), added
 #              .csv output format
@@ -20,7 +22,7 @@
 # copyright 2020 Quantum Analytics Research, LLC
 # Author: H. Carvey, keydet89@yahoo.com
 #-----------------------------------------------------------
-package adoberdr;
+package adobe;
 use strict;
 
 my %config = (hive          => "NTUSER\.DAT",
@@ -28,11 +30,11 @@ my %config = (hive          => "NTUSER\.DAT",
               hasDescr      => 0,
               hasRefs       => 0,
               osmask        => 22,
-              version       => 20200520);
+              version       => 20200522);
 
 sub getConfig{return %config}
 sub getShortDescr {
-	return "Gets user's Adobe Reader cRecentFiles values";	
+	return "Gets user's Adobe app cRecentFiles values";	
 }
 sub getDescr{}
 sub getRefs {}
@@ -44,31 +46,37 @@ my $VERSION = getVersion();
 sub pluginmain {
 	my $class = shift;
 	my $ntuser = shift;
-	::logMsg("Launching adoberdr v.".$VERSION);
-	::rptMsg("adoberdr v.".$VERSION); # banner
-  ::rptMsg("(".$config{hive}.") ".getShortDescr()."\n"); # banner
+	::logMsg("Launching adobe v.".$VERSION);
+	::rptMsg("adobe v.".$VERSION); # banner
+  ::rptMsg("(".$config{hive}.") ".getShortDescr()."\n"); 
 	my $reg = Parse::Win32Registry->new($ntuser);
 	my $root_key = $reg->get_root_key;
-	::rptMsg("adoberdr v.".$VERSION);
-# First, let's find out which version of Adobe Acrobat Reader is installed
-	my $version;
-	my $tag = 0;
-	my @versions = ("4\.0","5\.0","6\.0","7\.0","8\.0","9\.0","10\.0","11\.0","12\.0","13\.0","14\.0", "DC");
-	foreach my $ver (@versions) {		
-		my $key_path = "Software\\Adobe\\Acrobat Reader\\".$ver."\\AVGeneral\\cRecentFiles";
-		if (defined($root_key->get_subkey($key_path))) {
-			$version = $ver;
-			$tag = 1;
-		}
-	}
+	::rptMsg("adobe v.".$VERSION);
 	
-	if ($tag) {
-		::rptMsg("Adobe Acrobat Reader version ".$version." located."); 
-		my $key_path = "Software\\Adobe\\Acrobat Reader\\".$version."\\AVGeneral\\cRecentFiles";   
+	my @apps = ("Adobe Acrobat","Acrobat Reader");
+	foreach my $app (@apps) {
+# First, determine app version
+		my $version;
+		my $tag = 0;
+		my $path = "Software\\Adobe\\".$app;
+		if (my $key = $root_key->get_subkey($path)) {
+			my @subkeys = $key->get_list_of_subkeys();
+			if (scalar @subkeys > 0) {
+				foreach my $s (@subkeys) {
+					my $name = $s->get_name();
+					if (defined($root_key->get_subkey($path."\\".$name."\\AVGeneral\\cRecentFiles"))) {
+						$version = $name;
+					}
+				}
+			}
+		}
+	
+#		::rptMsg($app." version ".$version." located."); 
+		my $key_path = "Software\\Adobe\\".$app."\\".$version."\\AVGeneral\\cRecentFiles";   
 		my $key = $root_key->get_subkey($key_path);
 		if ($key) {
 			::rptMsg($key_path);
-			::rptMsg("");
+#			::rptMsg("");
 #			::rptMsg("LastWrite Time ".gmtime($key->get_timestamp())." (UTC)");
 			my %arkeys;
 			my @subkeys = $key->get_list_of_subkeys();
@@ -96,10 +104,9 @@ sub pluginmain {
 					eval {
 						$arkeys{$num}{uPageCount} = $s->get_value('uPageCount')->get_data();
 					};
-					
-					
+
 				}
-				::rptMsg("Most recent PDF opened: ".gmtime($arkeys{1}{lastwrite})." (UTC)");
+#				::rptMsg("Most recent PDF opened: ".gmtime($arkeys{1}{lastwrite})." (UTC)");
 				::rptMsg("Key name,file name,sDate,uFileSize,uPageCount");
 				foreach my $k (sort {$a <=> $b} keys %arkeys) {
 					::rptMsg("c".$k.",".$arkeys{$k}{data}.",".$arkeys{$k}{sDate}.",".$arkeys{$k}{uFileSize}.",".$arkeys{$k}{uPageCount});
@@ -112,9 +119,7 @@ sub pluginmain {
 		else {
 			::rptMsg("Could not access ".$key_path);
 		}
-	}
-	else {
-		::rptMsg("Adobe Acrobat Reader version not found.");
+		::rptMsg("");
 	}
 }
 
