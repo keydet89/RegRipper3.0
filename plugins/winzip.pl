@@ -72,7 +72,7 @@ sub pluginmain {
 		
 		if (exists $sk{'filemenu'}) {
 			my $tag = "filemenu";
-			::rptMsg($key_path."\\filemenu  [".::getDateFromEpoch($sk{'extract'}->get_timestamp)."Z]");
+			::rptMsg($key_path."\\filemenu  [".::getDateFromEpoch($sk{'filemenu'}->get_timestamp)."Z]");
 			my @vals = $sk{'filemenu'}->get_list_of_values();
 			my %ext;
 			foreach my $v (@vals) {
