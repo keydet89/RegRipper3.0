@@ -3,6 +3,7 @@
 # For Windows 7+
 #
 # Change history
+#   20200824 - fixed multibyte character corruption
 #   20200325 - created, copied from wordwheelquery.pl
 #	  20100330 - original plugin created
 #
@@ -13,13 +14,14 @@
 #-----------------------------------------------------------
 package wordwheelquery_tln;
 use strict;
+use Encode::Unicode;
 
 my %config = (hive          => "NTUSER\.DAT",
               hasShortDescr => 1,
               hasDescr      => 0,
               hasRefs       => 0,
               osmask        => 22,
-              version       => 20200325);
+              version       => 20200824);
 
 sub getConfig{return %config}
 sub getShortDescr {
@@ -52,7 +54,9 @@ sub pluginmain {
 			my @list = unpack("V*",$data);
 			if ($list[0] != 0xffffffff) {
 				$search = $key->get_value($list[0])->get_data();
-				$search =~ s/\00//g;
+				Encode::from_to($search,'UTF-16LE','utf8');
+				$search = Encode::decode_utf8($search);
+				chop $search;
 			} 
 			::rptMsg($lw."|REG|||WordWheelQuery most recent search: ".$search);
 		}
