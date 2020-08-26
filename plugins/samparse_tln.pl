@@ -3,6 +3,7 @@
 # Parse the SAM hive file for user/group membership info
 #
 # Change history:
+#    20200826 - fixed multibyte character corruption
 #    20120827 - TLN version created from original samparse.pl
 #    20120722 - updated %config hash
 #    20110303 - Fixed parsing of SID, added check for account type
@@ -23,6 +24,7 @@
 #-----------------------------------------------------------
 package samparse_tln;
 use strict;
+use Encode::Unicode;
 
 my %config = (hive          => "SAM",
               hivemask      => 2,
@@ -34,7 +36,7 @@ my %config = (hive          => "SAM",
               hasShortDescr => 1,
               hasDescr      => 0,
               hasRefs       => 1,
-              version       => 20120827);
+              version       => 20200826);
 
 sub getConfig{return %config}
 
@@ -121,7 +123,7 @@ sub pluginmain {
 					my $c_descr = "Acct Created (".$v_val{type}.")";
 					eval {
 						$pw_hint = $u->get_value("UserPasswordHint")->get_data();
-						$pw_hint =~ s/\00//g;
+						$pw_hint = _uniToAscii($pw_hint);
 						$c_descr .= " (Pwd Hint: ".$pw_hint.")";
 					};
 					
@@ -278,7 +280,8 @@ sub _translateSID {
 #---------------------------------------------------------------------
 sub _uniToAscii {
   my $str = $_[0];
-  $str =~ s/\00//g;
+  Encode::from_to($str,'UTF-16LE','utf8');
+  $str = Encode::decode_utf8($str);
   return $str;
 }
 
