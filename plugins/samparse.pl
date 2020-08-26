@@ -3,6 +3,7 @@
 # Parse the SAM hive file for user/group membership info
 #
 # Change history:
+#    20200825 - fixed multibyte character corruption
 #    20200427 - updated output date format
 #    20200216 - Added RID Hijacking check (https://pentestlab.blog/2020/02/12/persistence-rid-hijacking/)
 #    20160203 - updated to include add'l values (randomaccess/Phill Moore contribution)
@@ -25,6 +26,7 @@
 #-----------------------------------------------------------
 package samparse;
 use strict;
+use Encode::Unicode;
 
 my %config = (hive          => "SAM",
               hivemask      => 2,
@@ -34,7 +36,7 @@ my %config = (hive          => "SAM",
               hasShortDescr => 1,
               hasDescr      => 0,
               hasRefs       => 1,
-              version       => 20200427);
+              version       => 20200825);
 
 sub getConfig{return %config}
 
@@ -124,12 +126,12 @@ sub pluginmain {
 					my $surname;
 					eval {
 						$given = $u->get_value("GivenName")->get_data();
-						$given =~ s/\00//g;
+						$given = _uniToAscii($given);
 					};
 					
 					eval {
 						$surname = $u->get_value("SurName")->get_data();
-						$surname =~ s/\00//g;
+						$surname = _uniToAscii($surname);
 					};
 					
 					::rptMsg("Name            : ".$given." ".$surname);
@@ -137,14 +139,14 @@ sub pluginmain {
 					my $internet;
 					eval {
 						$internet = $u->get_value("InternetUserName")->get_data();
-						$internet =~ s/\00//g;
+						$internet = _uniToAscii($internet);
 						::rptMsg("InternetName    : ".$internet);
 					};
 					
 					my $pw_hint;
 					eval {
 						$pw_hint = $u->get_value("UserPasswordHint")->get_data();
-						$pw_hint =~ s/\00//g;
+						$pw_hint = _uniToAscii($pw_hint);
 					};
 					::rptMsg("Password Hint   : ".$pw_hint) unless ($@);
 					::rptMsg("Last Login Date : ".$lastlogin);
@@ -350,7 +352,8 @@ sub _translateSID {
 #---------------------------------------------------------------------
 sub _uniToAscii {
   my $str = $_[0];
-  $str =~ s/\00//g;
+  Encode::from_to($str,'UTF-16LE','utf8');
+  $str = Encode::decode_utf8($str);
   return $str;
 }
 
