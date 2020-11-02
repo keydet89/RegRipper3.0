@@ -8,6 +8,7 @@
 # version
 #
 # Change History:
+#  20201026 - added SelectAll(), Clear() functions for Textfield; fixed issue with ID'ing UsrClass.dat hives
 #  20200511 - added code to provide date format in ISO 8601/RFC 3339 format
 #  20200401 - Added code to check hive type, collect plugins, and automatically run those
 #             plugins against the hive
@@ -74,7 +75,6 @@ my $plugindir;
 ($^O eq "MSWin32") ? ($plugindir = $str."plugins/")
                    : ($plugindir = File::Spec->catfile("plugins"));
 my @alerts = ();
-my $RPTFH;
 
 #-----------------------------------------------------------
 # GUI
@@ -249,13 +249,15 @@ sub browse2_Click {
 sub go_Click {	
 # Set up the environment
 	setUpEnv();
-	open($RPTFH,">>",$env{rptfile});
-	binmode $RPTFH,":utf8";
 	if ($env{ntuser} eq "") {
 		Win32::GUI::MessageBox($main,$ENV{USERNAME}.", you did not select a hive file.\r\n",
 		                       "Doh!!",16);
 		return;
 	}
+# added 20201026
+	$report->SelectAll();	
+	$report->Clear();
+	
 # Guess the hive type, then run through all of the available plugins to get a list
 # to run against that hive.
 #----------------------------------------------------------------------------------------
@@ -347,7 +349,6 @@ sub go_Click {
 	}
 
 	$report->Append($err_cnt." plugins completed with errors.\r\n");
-	close($RPTFH);
 	$status->Text("Done.");
 }
 
@@ -400,10 +401,10 @@ sub logMsg {
 }
 
 sub rptMsg {
-	#open(FH,">>",$env{rptfile});
-	#binmode FH,":utf8";
+	open(FH,">>",$env{rptfile});
+	binmode FH,":utf8";
 	print FH $_[0]."\n";
-	#close(FH);
+	close(FH);
 }
 
 sub alertMsg {
@@ -453,6 +454,7 @@ sub guessHive {
 	my $r = $n[scalar(@n) - 1];
 	$r =~ tr/A-Z/a-z/;
 	my $name = (split(/\./,$r,2))[0];
+	$guess{$name} = 1;
 #-------------------------------------------------------------
 	
 # Check for SAM
