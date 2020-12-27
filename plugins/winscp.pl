@@ -3,6 +3,7 @@
 # 
 #
 # Change history
+#  20201227 - updated some data
 #  20200525 - updated date output format
 #  20140203 - created
 #
@@ -21,7 +22,7 @@ my %config = (hive          => "NTUSER\.DAT",
               hasDescr      => 0,
               hasRefs       => 0,
               osmask        => 22,
-              version       => 20200525);
+              version       => 20201227);
 
 sub getConfig{return %config}
 sub getShortDescr {
@@ -32,13 +33,32 @@ sub getRefs {}
 sub getHive {return $config{hive};}
 sub getVersion {return $config{version};}
 
+# https://metacpan.org/pod/release/GAAS/URI-1.52/URI/Escape.pm
+sub uri_unescape
+{
+    # Note from RFC1630:  "Sequences which start with a percent sign
+    # but are not followed by two hexadecimal characters are reserved
+    # for future extension"
+    my $str = shift;
+    if (@_ && wantarray) {
+        # not executed for the common case of a single argument
+        my @str = ($str, @_);  # need to copy
+        foreach (@str) {
+            s/%([0-9A-Fa-f]{2})/chr(hex($1))/eg;
+        }
+        return @str;
+    }
+    $str =~ s/%([0-9A-Fa-f]{2})/chr(hex($1))/eg if defined $str;
+    $str;
+}
+
 my $VERSION = getVersion();
 
 sub pluginmain {
 	my $class = shift;
 	my $ntuser = shift;
 	::logMsg("Launching winscp v.".$VERSION);
-	::rptMsg("winspc v.".$VERSION); # banner
+	::rptMsg("winscp v.".$VERSION); # banner
     ::rptMsg("(".$config{hive}.") ".getShortDescr()."\n"); # banner
 	my $reg = Parse::Win32Registry->new($ntuser);
 	my $root_key = $reg->get_root_key;
@@ -66,7 +86,41 @@ sub pluginmain {
 			my @vals = $key->get_subkey("Configuration\\History\\RemoteTarget")->get_list_of_values();
 			foreach my $v (@vals) {
 				::rptMsg($v->get_name()." ".$v->get_data());
+				::rptMsg("(URI decode) : ".Encode::decode("utf8", uri_unescape($v->get_data())));
 			}
+			::rptMsg("");
+		};
+
+# \Configuration\History\LocalTarget
+		eval {
+			::rptMsg("Configuration\\History\\LocalTarget");
+			my @vals = $key->get_subkey("Configuration\\History\\LocalTarget")->get_list_of_values();
+			foreach my $v (@vals) {
+				::rptMsg($v->get_name()." ".$v->get_data());
+				::rptMsg("(URI decode) : ".Encode::decode("utf8", uri_unescape($v->get_data())));
+			}
+			::rptMsg("");
+		};
+
+#  \Configuration\Interface\Commander\LocalPanel
+		
+		eval {
+			::rptMsg("Configuration\\Interface\\Commander\\LocalPanel");
+			my $localPanelPath = $key->get_subkey("Configuration\\Interface\\Commander\\LocalPanel");
+            my $data = $localPanelPath->get_value("LastPath")->get_data();
+            ::rptMsg($data);
+            ::rptMsg("(URI decode) : ".Encode::decode("utf8", uri_unescape($data)));
+			::rptMsg("");
+		};
+
+#  \Configuration\Interface\Commander\RemotePanel
+		
+		eval {
+			::rptMsg("Configuration\\Interface\\Commander\\RemotePanel");
+			my $RemotePanelPath = $key->get_subkey("Configuration\\Interface\\Commander\\RemotePanel");
+            my $data = $RemotePanelPath->get_value("LastPath")->get_data();
+            ::rptMsg($data);
+            ::rptMsg("(URI decode) : ".Encode::decode("utf8", uri_unescape($data)));
 			::rptMsg("");
 		};
 
