@@ -1,5 +1,3 @@
-package heidisql;
-use strict;
 #-----------------------------------------------------------
 # heidisql.pl
 # 
@@ -12,6 +10,9 @@ use strict;
 # 
 # Author: Hyun Yi @hyuunnn
 #-----------------------------------------------------------
+package heidisql;
+use strict;
+
 my %config = (hive          => "NTUSER\.DAT",
               hasShortDescr => 1,
               hasDescr      => 0,
