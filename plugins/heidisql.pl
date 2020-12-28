@@ -30,6 +30,14 @@ sub getRefs {}
 sub getHive {return $config{hive};}
 sub getVersion {return $config{version};}
 
+sub printData {
+    my ($key, $name) = @_;
+    my $handle = $key->get_value($name);
+    if ($handle) {
+        ::rptMsg($name." : ".$handle->get_data());
+    }
+}
+
 sub pluginmain {
     my $class = shift;
     my $hive = shift;
@@ -43,8 +51,8 @@ sub pluginmain {
     if ($key = $root_key->get_subkey("SOFTWARE\\HeidiSQL")) {
         ::rptMsg("[-] SOFTWARE\\HeidiSQL");
         ::rptMsg("LastWrite Time ".::getDateFromEpoch($key->get_timestamp())."Z");
-        ::rptMsg("LastActiveSession : ".$key->get_value("LastActiveSession")->get_data());
-        ::rptMsg("LastUsageStatisticCall : ".$key->get_value("LastUsageStatisticCall")->get_data());
+        printData($key, "LastActiveSession");
+        printData($key, "LastUsageStatisticCall");
         my @vals = $key->get_list_of_values();
         if (scalar(@vals) > 0) {
             foreach my $v (@vals) {
@@ -54,7 +62,7 @@ sub pluginmain {
                 }
             }
         }
-        ::rptMsg("ExportSQL_Filenames : ".$key->get_value("ExportSQL_Filenames")->get_data());
+        printData($key, "ExportSQL_Filenames");
     } 
     else {
         ::rptMsg("[-] SOFTWARE\\HeidiSQL not found.");
@@ -72,14 +80,14 @@ sub pluginmain {
         }
 
         foreach my $name (@paths) {
-            if ($key = $key->get_subkey($name)) {
+            if ($key = $root_key->get_subkey($key_path."\\".$name)) {
                 ::rptMsg("[-] ".$name);
-                ::rptMsg("Host : ".$key->get_value("Host")->get_data());
-                ::rptMsg("Port : ".$key->get_value("Port")->get_data());
-                ::rptMsg("User : ".$key->get_value("User")->get_data());
-                ::rptMsg("LastConnect : ".$key->get_value("LastConnect")->get_data());
-                ::rptMsg("lastUsedDB : ".$key->get_value("lastUsedDB")->get_data());
-                ::rptMsg("SessionCreated : ".$key->get_value("SessionCreated")->get_data());
+                printData($key, "Host");
+                printData($key, "Port");
+                printData($key, "User");
+                printData($key, "LastConnect");
+                printData($key, "lastUsedDB");
+                printData($key, "SessionCreated");
             }
 
             if ($key = $key->get_subkey("QueryHistory")) {
@@ -92,8 +100,6 @@ sub pluginmain {
                 }
             }
         }
-
-
     }
     else {
         ::rptMsg("[-] ".$key_path." not found.");
