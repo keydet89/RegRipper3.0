@@ -4,6 +4,7 @@
 # Can take considerable time to run; recommend running it via rip.exe
 #
 # History
+#   20210208 - added support for LocalServer32
 #   20200526 - updated date output format, added support for USRCLASS.DAT
 #   20180823 - minor code fix
 #   20180819 - updated to incorporate check for "TreatAs" value; code rewrite
@@ -85,6 +86,11 @@ sub pluginmain {
 					my $name = $s->get_name();
 					::rptMsg(sprintf "%-20s %-30s",::getDateFromEpoch($s->get_timestamp())."Z",$name);
 					
+			  	eval {
+			  		my $proc = $s->get_subkey("LocalServer32")->get_value("")->get_data();
+						::rptMsg(sprintf "%-20s  ".$name."\\LocalServer32 ".$proc, ::getDateFromEpoch($s->get_subkey("LocalServer32")->get_timestamp())."Z");
+			  	};
+
 			  	eval {
 			  		my $proc = $s->get_subkey("InprocServer32")->get_value("")->get_data();
 						::rptMsg(sprintf "%-20s  ".$name."\\InprocServer32: ".$proc, ::getDateFromEpoch($s->get_subkey("InprocServer32")->get_timestamp())."Z");
