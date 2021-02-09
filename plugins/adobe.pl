@@ -51,7 +51,6 @@ sub pluginmain {
   ::rptMsg("(".$config{hive}.") ".getShortDescr()."\n"); 
 	my $reg = Parse::Win32Registry->new($ntuser);
 	my $root_key = $reg->get_root_key;
-	::rptMsg("adobe v.".$VERSION);
 	
 	my @apps = ("Adobe Acrobat","Acrobat Reader");
 	foreach my $app (@apps) {

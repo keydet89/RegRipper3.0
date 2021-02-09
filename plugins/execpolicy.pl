@@ -36,7 +36,7 @@ my $VERSION = getVersion();
 sub pluginmain {
 	my $class = shift;
 	my $hive = shift;
-	::rptMsg("Launching execpolicy v.".$VERSION);
+	::logMsg("Launching execpolicy v.".$VERSION);
 	::rptMsg("execpolicy v.".$VERSION); # banner
 	::rptMsg("(".$config{hive}.") ".getShortDescr()."\n"); # banner 
 	my $key_path = ('Microsoft\\PowerShell\\1\\ShellIds\\Microsoft.Powershell');

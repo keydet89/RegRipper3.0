@@ -36,7 +36,7 @@ my $VERSION = getVersion();
 sub pluginmain {
 	my $class = shift;
 	my $hive = shift;
-	::rptMsg("Launching killsuit v.".$VERSION);
+	::logMsg("Launching killsuit v.".$VERSION);
 	::rptMsg("killsuit v.".$VERSION); # banner
 	::rptMsg("(".$config{hive}.") ".getShortDescr()."\n"); 
 	my $key_path = ('Microsoft\\Windows\\CurrentVersion\\OemMgmt');
