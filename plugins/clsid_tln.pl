@@ -4,6 +4,7 @@
 # Can take considerable time to run; recommend running it via rip.exe
 #
 # History
+#   20210208 - added support for LocalServer32
 #   20200526 - updated date output format, added support for USRCLASS.DAT
 #   20180823 - minor code fix
 #   20180819 - updated to incorporate check for "TreatAs" value; code rewrite
@@ -85,6 +86,11 @@ sub pluginmain {
 					my $name = $s->get_name();
 					::rptMsg($s->get_timestamp()."|REG|||CLSID - ".$name);
 					
+			  	eval {
+			  		my $proc = $s->get_subkey("LocalServer32")->get_value("")->get_data();
+						::rptMsg($s->get_subkey("LocalServer32")->get_timestamp()."|REG|||CLSID - ".$name."\\LocalServer32: ".$proc);
+			  	};
+
 			  	eval {
 			  		my $proc = $s->get_subkey("InprocServer32")->get_value("")->get_data();
 						::rptMsg($s->get_subkey("InprocServer32")->get_timestamp()."|REG|||CLSID - ".$name."\\InprocServer32: ".$proc);
