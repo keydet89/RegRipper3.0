@@ -45,7 +45,6 @@ sub pluginmain {
 	my $key_path = 'Software';
 	my $key;
 	if ($key = $root_key->get_subkey($key_path)) {
-		::rptMsg("listsoft v.".$VERSION);
 		::rptMsg("List the contents of the Software key in the NTUSER\.DAT hive");
 		::rptMsg("file, in order by LastWrite time.");
 		::rptMsg("");

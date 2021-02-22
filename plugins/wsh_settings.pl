@@ -37,7 +37,7 @@ sub pluginmain {
 	my $class = shift;
 	my $hive = shift;
 	my ($name,$data);
-	::rptMsg("Launching wsh_settings v.".$VERSION);
+	::logMsg("Launching wsh_settings v.".$VERSION);
 	::rptMsg("wsh_settings v.".$VERSION); 
 	::rptMsg("(".$config{hive}.") ".getShortDescr()."\n");  
 	my $key_path = ('Microsoft\\Windows Script Host\\Settings');

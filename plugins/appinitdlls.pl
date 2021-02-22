@@ -43,7 +43,7 @@ my $VERSION = getVersion();
 sub pluginmain {
 	my $class = shift;
 	my $hive = shift;
-	::rptMsg("Launching appinitdlls v.".$VERSION);
+	::logMsg("Launching appinitdlls v.".$VERSION);
 	::rptMsg("appinitdlls v.".$VERSION); # banner
 	::rptMsg("(".$config{hive}.") ".getShortDescr()."\n"); # banner 
 	my @paths = ('Microsoft\\Windows NT\\CurrentVersion\\Windows',

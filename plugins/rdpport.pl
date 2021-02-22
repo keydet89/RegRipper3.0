@@ -46,8 +46,6 @@ sub pluginmain {
 	my $ccs = $root_key->get_subkey("Select")->get_value("Current")->get_data();
 	my $key_path = "ControlSet00".$ccs."\\Control\\Terminal Server\\WinStations\\RDP-Tcp";
 	if ($key = $root_key->get_subkey($key_path)) {
-		::rptMsg("rdpport v.".$VERSION);
-		::rptMsg("");
 		my $port;
 		eval {
 			$port = $key->get_value("PortNumber")->get_data();
