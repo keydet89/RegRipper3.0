@@ -44,8 +44,6 @@ sub pluginmain {
 	my $key_path = "Microsoft\\Windows NT\\CurrentVersion\\Winlogon";
 	my $key;
 	if ($key = $root_key->get_subkey($key_path)) {
-		::rptMsg("sfc v.".$VERSION);
-		::rptMsg("");
 		::rptMsg($key_path);
 		::rptMsg("LastWrite Time ".::getDateFromEpoch($key->get_timestamp())."Z");
 		::rptMsg("");

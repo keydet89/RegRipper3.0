@@ -37,7 +37,7 @@ my $VERSION = getVersion();
 sub pluginmain {
 	my $class = shift;
 	my $hive = shift;
-	::rptMsg("Launching wow64 v.".$VERSION);
+	::logMsg("Launching wow64 v.".$VERSION);
 	::rptMsg("wow64 v.".$VERSION); 
 	::rptMsg("(".$config{hive}.") ".getShortDescr()."\n"); 
 	my @paths = ('Microsoft\\WOW64\\x86','Microsoft\\WOW64\\arm');

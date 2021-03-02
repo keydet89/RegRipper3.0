@@ -36,7 +36,7 @@ my $VERSION = getVersion();
 sub pluginmain {
 	my $class = shift;
 	my $hive = shift;
-	::rptMsg("Launching srum v.".$VERSION);
+	::logMsg("Launching srum v.".$VERSION);
 	::rptMsg("srum v.".$VERSION);
 	::rptMsg("(".$config{hive}.") ".getShortDescr()."\n"); 
 	my $key_path = ('Microsoft\\Windows NT\\CurrentVersion\\SRUM\\Extensions');

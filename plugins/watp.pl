@@ -37,7 +37,7 @@ my $VERSION = getVersion();
 sub pluginmain {
 	my $class = shift;
 	my $hive = shift;
-	::rptMsg("Launching watp v.".$VERSION);
+	::logMsg("Launching watp v.".$VERSION);
 	::rptMsg("watp v.".$VERSION); # banner
 	::rptMsg("(".$config{hive}.") ".getShortDescr()."\n"); # banner 
 	my $key_path = ('Microsoft\\Windows Advanced Protection');

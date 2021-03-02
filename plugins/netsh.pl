@@ -37,7 +37,7 @@ my $VERSION = getVersion();
 sub pluginmain {
 	my $class = shift;
 	my $hive = shift;
-	::rptMsg("Launching netsh v.".$VERSION);
+	::logMsg("Launching netsh v.".$VERSION);
 	::rptMsg("netsh v.".$VERSION); # banner
 	::rptMsg("(".$config{hive}.") ".getShortDescr()."\n"); # banner 
 	my $key_path = 'Microsoft\\Netsh';

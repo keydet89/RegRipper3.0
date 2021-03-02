@@ -36,7 +36,7 @@ my $VERSION = getVersion();
 sub pluginmain {
 	my $class = shift;
 	my $hive = shift;
-	::rptMsg("Launching runonceex v.".$VERSION);
+	::logMsg("Launching runonceex v.".$VERSION);
 	::rptMsg("runonceex v.".$VERSION); # banner
 	::rptMsg("(".$config{hive}.") ".getShortDescr()."\n"); # banner 
 	my $key_path = ('Microsoft\\Windows\\CurrentVersion\\RunOnceEx');

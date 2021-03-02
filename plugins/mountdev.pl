@@ -74,7 +74,12 @@ sub pluginmain {
 			
 			::rptMsg("");
 			foreach my $m (keys %md) {
-				::rptMsg("Device: ".$m);
+				if ($m =~ /^DMIO:ID:/){
+					::rptMsg("Device: DMIO:ID:"._translateBinary(substr($m,8)));
+				}
+				else {
+					::rptMsg("Device: ".$m);
+				}
 				foreach my $item (@{$md{$m}}) {
 					::rptMsg("  ".$item);
 				}

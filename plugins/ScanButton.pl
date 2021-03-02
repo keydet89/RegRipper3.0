@@ -13,7 +13,7 @@
 # copyright 2013 QAR, LLC
 # Author: H. Carvey, keydet89@yahoo.com
 #-----------------------------------------------------------
-package crashcontrol;
+package ScanButton;
 use strict;
 
 my %config = (hive          => "System",
@@ -26,7 +26,7 @@ my %config = (hive          => "System",
 sub getConfig{return %config}
 
 sub getShortDescr {
-	return "Get crash control information";	
+	return "Get Scan Button information";	
 }
 sub getDescr{}
 sub getRefs {}
@@ -42,8 +42,8 @@ my %dumpenabled = (0 => "None",
 sub pluginmain {
 	my $class = shift;
 	my $hive = shift;
-	::logMsg("Launching crashcontrol v.".$VERSION);
-	::rptMsg("crashcontrol v.".$VERSION); # banner
+	::logMsg("Launching ScanButton v.".$VERSION);
+	::rptMsg("scanbutton v.".$VERSION); # banner
 	::rptMsg("(".$config{hive}.") ".getShortDescr()."\n"); # banner 
 	my $reg = Parse::Win32Registry->new($hive);
 	my $root_key = $reg->get_root_key;
@@ -55,36 +55,28 @@ sub pluginmain {
 	if ($key = $root_key->get_subkey($key_path)) {
 		$current = $key->get_value("Current")->get_data();
 		
-		my $cc_path = "ControlSet00".$current."\\Control\\CrashControl";
+		my $cc_path = "ControlSet00".$current."\\Control\\StillImage\\Events\\ScanButton";
 		my $cc;
 		
 		if ($cc = $root_key->get_subkey($cc_path)) {
 			
 			eval {
-				my $cde = $cc->get_value("CrashDumpEnabled")->get_data();
-				::rptMsg("CrashDumpEnabled = ".$cde." [".$dumpenabled{$cde}."]");
+				my $guid = $cc->get_value("GUID")->get_data();
+				::rptMsg("GUID = ".$guid." [".$guid{$guid}."]");
 			};
 			
 			eval {
-				my $df = $cc->get_value("DumpFile")->get_data();
-				::rptMsg("DumpFile         = ".$df);
+				my $la = $cc->get_value("LaunchApplications")->get_data();
+				::rptMsg("LaunchApplications         = ".$la);
 			};
 			
-			eval {
-				my $mini = $cc->get_value("MinidumpDir")->get_data();
-				::rptMsg("MinidumpDir      = ".$mini);
-			};
 			
-			eval {
-				my $logevt = $cc->get_value("LogEvent")->get_data();
-				::rptMsg("LogEvent         = ".$logevt);
-				::rptMsg("  Logs an event to the System Event Log (event ID = 1001, source = Save Dump)") if ($logevt == 1);
-			};
+			
 			
 			eval {
 				my $sendalert = $cc->get_value("SendAlert")->get_data();
 				::rptMsg("SendAlert        = ".$sendalert);
-				::rptMsg("  Sends a \'net send\' pop-up if a crash occurs") if ($sendalert == 1);
+				::rptMsg("  Sends a \'net send\' pop-up if a scan occurs") if ($sendalert == 1);
 			};
 
 # Needs to be updated once a value is seen			

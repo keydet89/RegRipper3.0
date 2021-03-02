@@ -41,7 +41,7 @@ my $VERSION = getVersion();
 sub pluginmain {
 	my $class = shift;
 	my $hive = shift;
-	::rptMsg("Launching audiodev v.".$VERSION);
+	::logMsg("Launching audiodev v.".$VERSION);
 	::rptMsg("audiodev v.".$VERSION); 
 	::rptMsg("(".$config{hive}.") ".getShortDescr()."\n"); 
 	my $key_path = 'Microsoft\\Windows\\CurrentVersion\\MMDevices\\Audio';
