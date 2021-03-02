@@ -8,6 +8,7 @@
 # Usage: see "_syntax()" function
 #
 # Change History
+#   20210302 - added Digest::MD5
 #   20200427 - added getDateFromEpoch(), output date format in RFC 3339 profile of ISO 8601
 #   20200331 - added "auto" capability...point rip at a hive, it determines the hive type and runs
 #              hive-specific plugins automatically, obviating the need for profiles
@@ -25,13 +26,14 @@
 #   20080419 - added '-g' switch (experimental)
 #   20080412 - added '-c' switch
 #
-# copyright 2020 Quantum Analytics Research, LLC
+# copyright 2021 Quantum Analytics Research, LLC
 # Author: H. Carvey, keydet89@yahoo.com
 #-------------------------------------------------------------------------
 use strict;
 use Parse::Win32Registry qw(:REG_);
 use Getopt::Long;
 use Time::Local;
+use Digest::MD5;
 use File::Spec;
 
 # Included to permit compiling via Perl2Exe
@@ -330,6 +332,11 @@ sub _syntax {
 Rip v.$VERSION - CLI RegRipper tool	
 Rip [-r Reg hive file] [-f profile] [-p plugin] [options]
 Parse Windows Registry files, using either a single module, or a profile.
+
+NOTE: This tool does NOT automatically process Registry transaction logs! The tool 
+does check to see if the hive is dirty, but does not automatically process the
+transaction logs.  If you need to incorporate transaction logs, please consider 
+using yarp + registryFlush.py, or rla.exe from Eric Zimmerman.
 
   -r [hive] .........Registry hive file to parse
   -d ................Check to see if the hive is dirty 

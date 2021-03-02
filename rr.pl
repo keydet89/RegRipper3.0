@@ -8,6 +8,7 @@
 # version
 #
 # Change History:
+#  20210302 - added Digest::MD5
 #  20201026 - added SelectAll(), Clear() functions for Textfield; fixed issue with ID'ing UsrClass.dat hives
 #  20200511 - added code to provide date format in ISO 8601/RFC 3339 format
 #  20200401 - Added code to check hive type, collect plugins, and automatically run those
@@ -41,14 +42,14 @@
 # Functionality: 
 #   - plugins file is selectable
 # 
-# copyright 2020 Quantum Research Analytics, LLC
+# copyright 2021 Quantum Research Analytics, LLC
 # Author: H. Carvey, keydet89@yahoo.com
-# 
 #-----------------------------------------------------------
 #use strict;
 use Win32::GUI();
 #use Win32::GUI::Constants qw(CW_USEDEFAULT);
 use Time::Local;
+use Digest::MD5;
 use Parse::Win32Registry qw(:REG_);
 use File::Spec;
 
