@@ -481,8 +481,14 @@ sub guessHive {
 	};
 # Check for NTUSER.DAT	
 	eval {
-		$guess{ntuser} = 1 if ($root_key->get_subkey("Software\\Microsoft\\Windows\\CurrentVersion"));
+		$guess{ntuser} = 1 if ($root_key->get_subkey("Software\\Microsoft\\Windows\\CurrentVersion")&&
+				$root_key->get_subkey("Software\\Microsoft\\Windows NT\\CurrentVersion"));
 		
+	};	
+	
+	eval {
+		$guess{usrclass} = 1 if ($root_key->get_subkey("Local Settings\\Software") &&
+				$root_key->get_subkey("lnkfile"));
 	};	
 	
 	return %guess;
