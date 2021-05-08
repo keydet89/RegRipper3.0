@@ -1,11 +1,11 @@
 #-----------------------------------------------------------
 # allowedenum.pl
 #   
-#  To whitelist or show “Documents”, add the GUID {FDD39AD0-238F-46AF-ADB4-6C85480369C7} 
-#  and set its value data to 1. To hide “Documents” remove the GUID value, or set its 
+#  To whitelist or show 'Documents', add the GUID {FDD39AD0-238F-46AF-ADB4-6C85480369C7}
+#  and set its value data to 1. To hide 'Documents' remove the GUID value, or set its
 #  data to 0.
 #
-# If the “AllowedEnumeration” key exists without any whitelisted entries, none of the 
+# If the 'AllowedEnumeration' key exists without any whitelisted entries, none of the
 # special folders will show up in File Explorer and Desktop.
 #
 # Value name, or GUID, represents special folder namespace; data of 1 == show, 0 == hidden
