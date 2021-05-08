@@ -1,4 +1,4 @@
-#! c:\perl\bin\perl.exe
+
 #-----------------------------------------------------------
 # null.pl
 # Check key/value names in a hive for a leading null character

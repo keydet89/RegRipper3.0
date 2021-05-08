@@ -1,4 +1,4 @@
-#! c:\perl\bin\perl.exe
+
 #-----------------------------------------------------------
 # typedurlstime.pl
 # Plugin for Registry Ripper, NTUSER.DAT edition - gets the 

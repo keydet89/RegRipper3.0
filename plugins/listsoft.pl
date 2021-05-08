@@ -1,4 +1,4 @@
-#! c:\perl\bin\perl.exe
+
 #-----------------------------------------------------------
 # listsoft.pl
 # Plugin for Registry Ripper; traverses thru the Software

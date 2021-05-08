@@ -1,4 +1,4 @@
-#! c:\perl\bin\perl.exe
+
 #-----------------------------------------------------------
 # sizes.pl
 # Plugin for RegRipper; traverses through a Registry hive,
