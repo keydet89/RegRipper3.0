@@ -121,10 +121,10 @@ sub pluginmain {
 			}
 			::rptMsg("");
 			foreach my $v (sort keys %vol) {
-				next unless ($v =~ m/^\\\?\?\\Volume{/);
+				next unless ($v =~ m/^\\\?\?\\Volume\{/);
 				my $id = $v;
-				$id =~ s/^\\\?\?\\Volume{//;
-				$id =~ s/}$//;
+				$id =~ s/^\\\?\?\\Volume\{//;
+				$id =~ s/\}$//;
 				$id =~ s/-//g;
 				my $l = hex(substr($id,0,8));
 				my $m = hex(substr($id,8,4));
@@ -142,8 +142,8 @@ sub pluginmain {
 					
 					if ($item =~ m/^\\\?\?\\Volume/) {
 						my $id = $item;
-						$id =~ s/^\\\?\?\\Volume{//;
-						$id =~ s/}$//;
+						$id =~ s/^\\\?\?\\Volume\{//;
+						$id =~ s/\}$//;
 #						$id =~ s/-//g;
 #						my $l = hex(substr($id,0,8));
 #						my $m = hex(substr($id,8,4));
