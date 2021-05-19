@@ -23,6 +23,9 @@ my %config = (hive          => "System",
               hasRefs       => 0,
               version       => 20131210);
 
+# Global symbol "%guid" requires explicit package name, to avoid compilation fail
+my %guid;
+
 sub getConfig{return %config}
 
 sub getShortDescr {
