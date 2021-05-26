@@ -5,7 +5,7 @@
 # 
 # Change history
 #   20200517 - updated date output format
-#   20140721 - update provided by Espen Øyslebø <eoyslebo@gmail.com>
+#   20140721 - update provided by Espen Ã˜yslebÃ¸ <eoyslebo@gmail.com>
 #   20130530 - updated to output Disk Signature in correct format, thanks to
 #              info provided by Tom Yarrish (see ref.)
 #   20120403 - commented out time stamp info from volume GUIDs, added
@@ -23,7 +23,7 @@ package mountdev2;
 use strict;
 
 # Required for 32-bit versions of perl that don't support unpack Q
-# update provided by Espen Øyslebø <eoyslebo@gmail.com>
+# update provided by Espen Ã˜yslebÃ¸ <eoyslebo@gmail.com>
 my $little;
 BEGIN { $little= unpack "C", pack "S", 1; }
 sub squad {
@@ -90,7 +90,7 @@ sub pluginmain {
 				if ($len == 12) {
 					my $sig = _translateBinary(substr($data,0,4));
 
-# Section added by Espen Øyslebø <eoyslebo@gmail.com>
+# Section added by Espen Ã˜yslebÃ¸ <eoyslebo@gmail.com>
 # gets the offset, which can be a value larger than what
 # can be handled by 32-bit Perl
 					my $o; #offset

@@ -53,7 +53,7 @@ sub pluginmain {
         ::rptMsg("LastWrite Time: ".::getDateFromEpoch($key->get_timestamp())."Z");
         ::rptMsg("");
 
-        # GET EnableLUA –
+        # GET EnableLUA -
 
         my $enablelua;
         eval {
@@ -71,7 +71,7 @@ sub pluginmain {
         }
         ::rptMsg("");
 
-# GET EnableVirtualization –
+# GET EnableVirtualization -
 
         my $enablevirtualization;
         eval {
@@ -89,7 +89,7 @@ sub pluginmain {
         }
         ::rptMsg("");
 		
-		# GET FilterAdministratorToken –
+		# GET FilterAdministratorToken -
 
         my $filteradministratortoken;
         eval {
@@ -107,7 +107,7 @@ sub pluginmain {
         }
         ::rptMsg("");
 		
-		# GET ConsentPromptBehaviorAdmin –
+		# GET ConsentPromptBehaviorAdmin -
 
         my $consentpromptbehavioradmin;
         eval {
@@ -129,7 +129,7 @@ sub pluginmain {
         }
         ::rptMsg("");
 		
-		# GET ConsentPromptBehaviorUser –
+		# GET ConsentPromptBehaviorUser -
 
         my $consentpromptbehavioruser;
         eval {
