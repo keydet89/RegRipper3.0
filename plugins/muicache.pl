@@ -1,4 +1,4 @@
-#! c:\perl\bin\perl.exe
+
 #-----------------------------------------------------------
 # muicache.pl
 # Plugin for Registry Ripper, NTUSER.DAT edition - gets the 

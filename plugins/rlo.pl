@@ -1,4 +1,4 @@
-#! c:\perl\bin\perl.exe
+
 #-----------------------------------------------------------
 # rlo.pl
 # Check key/value names in a hive for RLO issue; the plugin attempts to

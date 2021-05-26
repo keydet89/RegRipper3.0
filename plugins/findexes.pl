@@ -1,4 +1,4 @@
-#! c:\perl\bin\perl.exe
+
 #-----------------------------------------------------------
 # findexes.pl
 # Plugin for RegRipper; traverses through a Registry hive,
