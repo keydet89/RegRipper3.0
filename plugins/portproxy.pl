@@ -1,17 +1,23 @@
 #-----------------------------------------------------------
 # portproxy.pl
-#   Port proxy configuration used by netsh and attackers
-#   for command and control.
+#   Port proxy configuration used by netsh. Used by 
+#   attackers for command and control communication.
 #
-# History
+# Change History
 #   20210622 - created
 #
-# author: Andreas Hunkeler (@Karneades)
+# References
+#   https://www.fireeye.com/blog/threat-research/2019/01/bypassing-network-restrictions-through-rdp-tunneling.html
+#   https://adepts.of0x.cc/netsh-portproxy-code/
+#   https://www.dfirnotes.net/portproxy_detection/
+#
+# Author: Andreas Hunkeler (@Karneades)
 #-----------------------------------------------------------
 package portproxy;
 use strict;
 
 my %config = (hive          => "System",
+              category      => "config",
               osmask        => 22,
               hasShortDescr => 1,
               hasDescr      => 0,
