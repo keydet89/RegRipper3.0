@@ -8,7 +8,6 @@
 # Usage: see "_syntax()" function
 #
 # Change History
-#   20210612 - Clean up construction of plugin path
 #   20210302 - added Digest::MD5
 #   20200427 - added getDateFromEpoch(), output date format in RFC 3339 profile of ISO 8601
 #   20200331 - added "auto" capability...point rip at a hive, it determines the hive type and runs
@@ -36,7 +35,6 @@ use Getopt::Long;
 use Time::Local;
 use Digest::MD5;
 use File::Spec;
-use Cwd;
 
 # Included to permit compiling via Perl2Exe
 #perl2exe_include "Parse/Win32Registry.pm";
@@ -57,12 +55,23 @@ my %config;
 Getopt::Long::Configure("prefix_pattern=(-|\/)");
 GetOptions(\%config,qw(reg|r=s file|f=s csv|c dirty|d auto|a autoTLN|aT guess|g user|u=s sys|s=s plugin|p=s update|uP list|l help|?|h));
 
-# Retrieves absolute path to executable 
-my $scriptpath = Cwd::realpath($0);
+# Code updated 20090102
+my @path;
+my $str = $0;
+($^O eq "MSWin32") ? (@path = split(/\\/,$0))
+                   : (@path = split(/\//,$0));
+$str =~ s/($path[scalar(@path) - 1])//;
 
-# Retrieves absolute path of parent directory 
-my $scriptdir = File::Basename::dirname($scriptpath);
-
+# Suggested addition by Hal Pomeranz for compatibility with Linux
+#push(@INC,$str);
+# code updated 20190318
+my $plugindir;
+($^O eq "MSWin32") ? ($plugindir = $str."plugins/")
+                   : ($plugindir = File::Spec->catfile("plugins"));
+#my $plugindir = $str."plugins/";
+#my $plugindir = File::Spec->catfile("plugins");
+#print "Plugins Dir = ".$plugindir."\n";
+# End code update
 my $VERSION = "3\.0";
 my @alerts = ();
 
