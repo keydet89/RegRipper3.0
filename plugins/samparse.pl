@@ -3,6 +3,7 @@
 # Parse the SAM hive file for user/group membership info
 #
 # Change history:
+#    20211001 - Added ResetData (hyuunnn/Hyun Yi contribution)
 #    20200825 - fixed multibyte character corruption
 #    20200427 - updated output date format
 #    20200216 - Added RID Hijacking check (https://pentestlab.blog/2020/02/12/persistence-rid-hijacking/)
@@ -148,7 +149,15 @@ sub pluginmain {
 						$pw_hint = $u->get_value("UserPasswordHint")->get_data();
 						$pw_hint = _uniToAscii($pw_hint);
 					};
+
+					my $reset_data;
+					eval {
+						$reset_data = $u->get_value("ResetData")->get_data();
+						$reset_data = _uniToAscii($reset_data);
+					};
+					
 					::rptMsg("Password Hint   : ".$pw_hint) unless ($@);
+					::rptMsg("Reset Data 	  : ".$reset_data) unless ($@);
 					::rptMsg("Last Login Date : ".$lastlogin);
 					::rptMsg("Pwd Reset Date  : ".$pwdreset);
 					::rptMsg("Pwd Fail Date   : ".$pwdfail);
