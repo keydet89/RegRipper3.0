@@ -105,6 +105,11 @@ sub pluginmain {
 			  		my $treat = $s->get_subkey("TreatAs")->get_value("")->get_data();
 						::rptMsg(sprintf "%-20s  ".$name."\\TreatAs: ".$treat, ::getDateFromEpoch($s->get_subkey("TreatAs")->get_timestamp())."Z");
 			  	};
+
+					eval {
+			  		my $scriptlet = $s->get_subkey("ScriptletURL")->get_value("")->get_data();
+						::rptMsg(sprintf "%-20s  ".$name."\\ScriptletURL: ".$scriptlet, ::getDateFromEpoch($s->get_subkey("ScriptletURL")->get_timestamp())."Z");
+			  	};
 			  	::rptMsg("");
 				}
 			}
