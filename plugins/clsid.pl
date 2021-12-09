@@ -4,6 +4,7 @@
 # Can take considerable time to run; recommend running it via rip.exe
 #
 # History
+#   20211209 - added support for ScriptletURL
 #   20210208 - added support for LocalServer32
 #   20200526 - updated date output format, added support for USRCLASS.DAT
 #   20180823 - minor code fix
