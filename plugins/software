@@ -17,6 +17,7 @@ disablesr
 drivers32
 emdmgmt
 execpolicy
+exefile
 gpohist
 heap
 imagefile
