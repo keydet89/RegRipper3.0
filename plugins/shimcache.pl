@@ -5,6 +5,7 @@
 # works within an analysis process.
 #
 # History:
+#  20220921 - updated Win8.1 parsing
 #  20200428 - updated output date format
 #  20190112 - updated parsing for Win8.1
 #  20180311 - updated for more recent version of Win10/Win2016
@@ -21,7 +22,7 @@
 # This plugin is based solely on the work and examples provided by Mandiant;
 # thanks to them for sharing this information, and making the plugin possible.
 # 
-# copyright 2020 Quantum Analytics Research, LLC
+# copyright 2022 Quantum Analytics Research, LLC
 # Author: H. Carvey, keydet89@yahoo.com
 #-----------------------------------------------------------
 package shimcache;
@@ -30,12 +31,12 @@ use strict;
 my %config = (hive          => "System",
 							hivemask      => 4,
 							output        => "report",
-							category      => "Program Execution",
+							category      => "file existence",
               hasShortDescr => 1,
               hasDescr      => 0,
               hasRefs       => 0,
               osmask        => 31,  
-              version       => 20200428);
+              version       => 20220921);
 
 sub getConfig{return %config}
 sub getShortDescr {
@@ -334,7 +335,7 @@ sub appWin81 {
 	
 	while ($ofs < $len) {
 		$tag = substr($data,$ofs,4);
-		if ($tag eq "10ts") {
+		if ($tag eq "10ts" || $tag eq "00ts") {
 			
 			$sz = unpack("V",substr($data,$ofs + 0x08,4));
 			$name_len   = unpack("v",substr($data,$ofs + 0x0c,2));

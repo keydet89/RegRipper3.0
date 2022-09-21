@@ -8,6 +8,7 @@
 # version
 #
 # Change History:
+#  20220921 - updated to incorporate SAM updates from Mark McKinnon
 #  20210302 - added Digest::MD5
 #  20201026 - added SelectAll(), Clear() functions for Textfield; fixed issue with ID'ing UsrClass.dat hives
 #  20200511 - added code to provide date format in ISO 8601/RFC 3339 format
@@ -42,7 +43,7 @@
 # Functionality: 
 #   - plugins file is selectable
 # 
-# copyright 2021 Quantum Research Analytics, LLC
+# copyright 2022 Quantum Research Analytics, LLC
 # Author: H. Carvey, keydet89@yahoo.com
 #-----------------------------------------------------------
 #use strict;
@@ -52,6 +53,8 @@ use Time::Local;
 use Digest::MD5;
 use Parse::Win32Registry qw(:REG_);
 use File::Spec;
+use Encode::Unicode;
+use JSON::PP;
 
 # Included to permit compiling via Perl2Exe
 #perl2exe_include "Parse/Win32Registry.pm";

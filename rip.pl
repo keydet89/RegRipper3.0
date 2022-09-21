@@ -8,6 +8,7 @@
 # Usage: see "_syntax()" function
 #
 # Change History
+#   20220921 - updated to incorporate SAM updates from Mark McKinnon
 #   20210302 - added Digest::MD5
 #   20200427 - added getDateFromEpoch(), output date format in RFC 3339 profile of ISO 8601
 #   20200331 - added "auto" capability...point rip at a hive, it determines the hive type and runs
@@ -26,7 +27,7 @@
 #   20080419 - added '-g' switch (experimental)
 #   20080412 - added '-c' switch
 #
-# copyright 2021 Quantum Analytics Research, LLC
+# copyright 2022 Quantum Analytics Research, LLC
 # Author: H. Carvey, keydet89@yahoo.com
 #-------------------------------------------------------------------------
 use strict;
@@ -35,6 +36,8 @@ use Getopt::Long;
 use Time::Local;
 use Digest::MD5;
 use File::Spec;
+use Encode::Unicode;
+use JSON::PP;
 
 # Included to permit compiling via Perl2Exe
 #perl2exe_include "Parse/Win32Registry.pm";

@@ -3,10 +3,7 @@
 # Parse the SAM hive file for user/group membership info
 #
 # Change history:
-#    20211001 - Added ResetData (hyuunnn/Hyun Yi contribution)
-#    20200825 - fixed multibyte character corruption
-#    20200427 - updated output date format
-#    20200216 - Added RID Hijacking check (https://pentestlab.blog/2020/02/12/persistence-rid-hijacking/)
+#    20220921 - updated w/ security question parsing (contribution by Mark McKinnon)
 #    20160203 - updated to include add'l values (randomaccess/Phill Moore contribution)
 #    20120722 - updated %config hash
 #    20110303 - Fixed parsing of SID, added check for account type
@@ -22,22 +19,23 @@
 #    Source available here: http://pogostick.net/~pnh/ntpasswd/
 #    http://accessdata.com/downloads/media/Forensic_Determination_Users_Logon_Status.pdf
 #
-# copyright 2020 Quantum Analytics Research, LLC
+# copyright 2022 Quantum Analytics Research, LLC
 # Author: H. Carvey, keydet89@yahoo.com
 #-----------------------------------------------------------
 package samparse;
 use strict;
+use JSON::PP;
 use Encode::Unicode;
 
 my %config = (hive          => "SAM",
               hivemask      => 2,
               output        => "report",
               category      => "",
-              osmask        => 63, 
+              osmask        => 63, #XP - Win8
               hasShortDescr => 1,
               hasDescr      => 0,
               hasRefs       => 1,
-              version       => 20200825);
+              version       => 20220921);
 
 sub getConfig{return %config}
 
@@ -84,6 +82,24 @@ sub pluginmain {
 	::rptMsg("-" x 25);
 	my $key_path = 'SAM\\Domains\\Account\\Users';
 	my $key;
+	my $local_sid = "";
+	my $account_key = $root_key->get_subkey("SAM\\Domains\\Account");
+	if (defined $account_key) {
+		my $account_value = $account_key->get_value("V");
+		if (defined $account_value) {
+			my $account_data = $account_value->get_data();
+			if (defined $account_data) {
+				my $data_len = length($account_data);
+				if ($data_len >= 12) {
+					my @vArray  = unpack("VVV",substr($account_data, $data_len-12, 12));
+					my $vArray_len = @vArray;
+					if ($vArray_len == 3) {
+						$local_sid = "S-1-5-21-".$vArray[0]."-".$vArray[1]."-".$vArray[2];
+					}
+				}
+			}
+		}
+	}
 	if ($key = $root_key->get_subkey($key_path)) {
 		my @user_list = $key->get_list_of_subkeys();
 		if (scalar(@user_list) > 0) {
@@ -107,32 +123,50 @@ sub pluginmain {
 					};
 				
 					::rptMsg("Username        : ".$v_val{name}." [".$rid."]");
+					::rptMsg("SID             : ".$local_sid."-".$rid);
 					::rptMsg("Full Name       : ".$v_val{fullname});
 					::rptMsg("User Comment    : ".$v_val{comment});
 					::rptMsg("Account Type    : ".$v_val{type});
-					::rptMsg("Account Created : ".::getDateFromEpoch($c_date)."Z") if ($c_date > 0); 
+					::rptMsg("Account Created : ".gmtime($c_date)." Z") if ($c_date > 0); 
 					
 					my $f_value = $u->get_value("F");
 					my $f = $f_value->get_data();
 					my %f_val = parseF($f);
 					
+					eval {
+					  my $reset_data_value = $u->get_value("ResetData");
+						my $reset_data = $reset_data_value->get_data();
+    				my $reset_data_hash = decode_json($reset_data);
+						my $reset_data_question_1 = $reset_data_hash->{'questions'}[0];
+						my $reset_data_question_2 = $reset_data_hash->{'questions'}[1];
+						my $reset_data_question_3 = $reset_data_hash->{'questions'}[2];
+						my $question_1 = $reset_data_question_1->{'question'};
+            ::rptMsg("Security Questions:");
+						::rptMsg("    Question 1  : ".$question_1);
+						::rptMsg("    Answer 1    : ".$reset_data_question_1->{'answer'});
+						::rptMsg("    Question 2  : ".$reset_data_question_2->{'question'});
+						::rptMsg("    Answer 2    : ".$reset_data_question_2->{'answer'});
+						::rptMsg("    Question 3  : ".$reset_data_question_3->{'question'});
+						::rptMsg("    Answer 3    : ".$reset_data_question_3->{'answer'});
+					};
+								
 					my $lastlogin;
 					my $pwdreset;
 					my $pwdfail;
-					($f_val{last_login_date} == 0) ? ($lastlogin = "Never") : ($lastlogin = ::getDateFromEpoch($f_val{last_login_date})."Z");
-					($f_val{pwd_reset_date} == 0) ? ($pwdreset = "Never") : ($pwdreset = ::getDateFromEpoch($f_val{pwd_reset_date})."Z");
-					($f_val{pwd_fail_date} == 0) ? ($pwdfail = "Never") : ($pwdfail = ::getDateFromEpoch($f_val{pwd_fail_date})."Z");
+					($f_val{last_login_date} == 0) ? ($lastlogin = "Never") : ($lastlogin = gmtime($f_val{last_login_date})." Z");
+					($f_val{pwd_reset_date} == 0) ? ($pwdreset = "Never") : ($pwdreset = gmtime($f_val{pwd_reset_date})." Z");
+					($f_val{pwd_fail_date} == 0) ? ($pwdfail = "Never") : ($pwdfail = gmtime($f_val{pwd_fail_date})." Z");
 					
 					my $given;
 					my $surname;
 					eval {
 						$given = $u->get_value("GivenName")->get_data();
-						$given = _uniToAscii($given);
+						$given =~ s/\x00//g;
 					};
 					
 					eval {
 						$surname = $u->get_value("SurName")->get_data();
-						$surname = _uniToAscii($surname);
+						$surname =~ s/\x00//g;
 					};
 					
 					::rptMsg("Name            : ".$given." ".$surname);
@@ -140,50 +174,39 @@ sub pluginmain {
 					my $internet;
 					eval {
 						$internet = $u->get_value("InternetUserName")->get_data();
-						$internet = _uniToAscii($internet);
+						$internet =~ s/\x00//g;
 						::rptMsg("InternetName    : ".$internet);
 					};
 					
+
 					my $pw_hint;
 					eval {
 						$pw_hint = $u->get_value("UserPasswordHint")->get_data();
-						$pw_hint = _uniToAscii($pw_hint);
+						$pw_hint =~ s/\x00//g;
 					};
-
-					my $reset_data;
-					eval {
-						$reset_data = $u->get_value("ResetData")->get_data();
-						$reset_data = _uniToAscii($reset_data);
-					};
-					
 					::rptMsg("Password Hint   : ".$pw_hint) unless ($@);
-					::rptMsg("Reset Data 	  : ".$reset_data) unless ($@);
 					::rptMsg("Last Login Date : ".$lastlogin);
 					::rptMsg("Pwd Reset Date  : ".$pwdreset);
 					::rptMsg("Pwd Fail Date   : ".$pwdfail);
 					::rptMsg("Login Count     : ".$f_val{login_count});
-					::rptMsg("Embedded RID    : ".$f_val{rid});
-					
-					if ($rid != $f_val{rid}) {
-						::rptMsg("ALERT: Possible RID hijacking found!");
-					}
-					
 					foreach my $flag (keys %acb_flags) {
 						::rptMsg("  --> ".$acb_flags{$flag}) if ($f_val{acb_flags} & $flag);
 					}
 					::rptMsg("");
+					
 				}
 			}
 		}
 	}
 	else {
 		::rptMsg($key_path." not found.");
+		::logMsg($key_path." not found.");
 	}
 	::rptMsg("-" x 25);
 	::rptMsg("Group Membership Information");
 	::rptMsg("-" x 25);
 # Get Group membership information	
-	my $key_path = 'SAM\\Domains\\Builtin\\Aliases';
+	$key_path = 'SAM\\Domains\\Builtin\\Aliases';
 	if ($key = $root_key->get_subkey($key_path)) {
 		my %grps;
 		my @groups = $key->get_list_of_subkeys();
@@ -201,7 +224,7 @@ sub pluginmain {
 				$name =~ s/^0000//;
 				my %c_val = parseC($grps{$k}{C_value});
 				::rptMsg("Group Name    : ".$c_val{group_name}." [".$c_val{num_users}."]");
-				::rptMsg("LastWrite     : ".::getDateFromEpoch($grps{$k}{LastWrite})."Z");
+				::rptMsg("LastWrite     : ".gmtime($grps{$k}{LastWrite})." Z");
 				::rptMsg("Group Comment : ".$c_val{comment});
 				if ($c_val{num_users} == 0) {
 					::rptMsg("Users         : None");
