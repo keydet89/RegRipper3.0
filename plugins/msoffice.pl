@@ -151,7 +151,7 @@ sub pluginmain {
 		};
 
 # Added 20221204
-# AccessVBOM subkey enables programmatic access to the VBA Object Model
+# AccessVBOM value enables programmatic access to the VBA Object Model
 # Used in Zloader macros: https://www.mcafee.com/blogs/other-blogs/mcafee-labs/zloader-with-a-new-infection-technique/
 # https://renenyffenegger.ch/notes/development/languages/VBA/Programmatic-access-to-Visual-Basic-Project-is-not-trusted
 		eval {
