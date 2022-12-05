@@ -146,6 +146,19 @@ sub pluginmain {
 			if (my $sec = $key->get_subkey($office_version."\\".$app."\\Security")) {
 				my $b = $sec->get_value("blockcontentexecutionfrominternet")->get_data();
 				::rptMsg("blockcontentexecutionfrominternet value: ".$b);
+				::rptMsg("");
+			}
+		};
+
+# Added 20221204
+# AccessVBOM subkey enables programmatic access to the VBA Object Model
+# Used in Zloader macros: https://www.mcafee.com/blogs/other-blogs/mcafee-labs/zloader-with-a-new-infection-technique/
+# https://renenyffenegger.ch/notes/development/languages/VBA/Programmatic-access-to-Visual-Basic-Project-is-not-trusted
+		eval {
+			if (my $sec = $key->get_subkey($office_version."\\".$app."\\Security")) {
+				my $vbom = $sec->get_value("AccessVBOM")->get_data();
+				::rptMsg("AccessVBOM value: ".$vbom);
+				::rptMsg("");
 			}
 		};
 
