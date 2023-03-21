@@ -4,6 +4,7 @@
 # Can take considerable time to run; recommend running it via rip.exe
 #
 # History
+#   20230321 - fixed code issue for ScriptletURL
 #   20211209 - added support for ScriptletURL
 #   20210208 - added support for LocalServer32
 #   20200526 - updated date output format, added support for USRCLASS.DAT
@@ -109,7 +110,7 @@ sub pluginmain {
 				
 					eval {
 			  		my $scriptlet = $s->get_subkey("ScriptletURL")->get_value("")->get_data();
-						::rptMsg($s->get_subkey("ScriptletURL")->get_timestamp())."|REG|||CLID - ".$name."\\ScriptletURL: ".$scriptlet);
+						::rptMsg($s->get_subkey("ScriptletURL")->get_timestamp()."|REG|||CLID - ".$name."\\ScriptletURL: ".$scriptlet);
 			  	};
 				}
 			}
