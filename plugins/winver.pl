@@ -46,7 +46,8 @@ sub pluginmain {
               5 => "BuildLabEx",
               6 => "CompositionEditionID",
               7 => "RegisteredOrganization",
-              8 => "RegisteredOwner");
+              8 => "RegisteredOwner"
+              9 => "UBR");
          
 	my $reg = Parse::Win32Registry->new($hive);
 	my $root_key = $reg->get_root_key;
@@ -72,6 +73,11 @@ sub pluginmain {
 			my ($t0,$t1) = unpack("VV",$it);
 			my $t = ::getTime($t0,$t1);
 			::rptMsg(sprintf "%-25s %-20s","InstallTime",::getDateFromEpoch($t)."Z");
+		};
+
+		eval {
+			my $ubr = $key->get_value("UBR")->get_data();
+			::rptMsg(sprintf "%-25s %-20s", "UBR", $ubr);
 		};
 		
 	}
