@@ -46,9 +46,9 @@ sub pluginmain {
               5 => "BuildLabEx",
               6 => "CompositionEditionID",
               7 => "RegisteredOrganization",
-              8 => "RegisteredOwner"
+              8 => "RegisteredOwner",
               9 => "UBR");
-         
+        
 	my $reg = Parse::Win32Registry->new($hive);
 	my $root_key = $reg->get_root_key;
 	my $key_path = "Microsoft\\Windows NT\\CurrentVersion";
