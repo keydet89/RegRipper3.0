@@ -23,7 +23,7 @@ time).
 This tool does NOT automatically process hive transaction logs. If you need
 to incorporate data from hive transaction logs into your analysis, consider merging
 the data via Maxim Suhanov's `yarp` + `registryFlush.py`, or via Eric Zimmerman's `rla.exe`
-which is included in [Eric's Registry Explorer/RECmd](https://f001.backblazeb2.com/file/EricZimmermanTools/RegistryExplorer_RECmd.zip).
+which is included in [Eric's Registry Explorer/RECmd](https://ericzimmerman.github.io/).
 
 The following Perl module files have been modified, and the modified versions are 
 provided as part of this repo:
