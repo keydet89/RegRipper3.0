@@ -38,6 +38,7 @@ use Digest::MD5;
 use File::Spec;
 use Encode::Unicode;
 use JSON::PP;
+use Cwd 'abs_path';
 
 # Included to permit compiling via Perl2Exe
 #perl2exe_include "Parse/Win32Registry.pm";
@@ -60,7 +61,8 @@ GetOptions(\%config,qw(reg|r=s file|f=s csv|c dirty|d auto|a autoTLN|aT guess|g 
 
 # Code updated 20090102
 my @path;
-my $str = $0;
+# Code updated 20241031
+my $str = abs_path($0);
 ($^O eq "MSWin32") ? (@path = split(/\\/,$0))
                    : (@path = split(/\//,$0));
 $str =~ s/($path[scalar(@path) - 1])//;
@@ -70,7 +72,7 @@ $str =~ s/($path[scalar(@path) - 1])//;
 # code updated 20190318
 my $plugindir;
 ($^O eq "MSWin32") ? ($plugindir = $str."plugins/")
-                   : ($plugindir = File::Spec->catfile("plugins"));
+                   : ($plugindir = File::Spec->catfile($str, "plugins"));
 #my $plugindir = $str."plugins/";
 #my $plugindir = File::Spec->catfile("plugins");
 #print "Plugins Dir = ".$plugindir."\n";
