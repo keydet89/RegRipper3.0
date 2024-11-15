@@ -467,8 +467,8 @@ sub printData {
 			}
 		}
 		my $h = join(' ',@s3);
-#		::rptMsg(sprintf "0x%08x: %-47s  ".$str,($cnt * 16),$h);
-		$display[$cnt] = sprintf "0x%08x: %-47s  ".$str,($cnt * 16),$h;
+#		::rptMsg(sprintf "0x%08x: %-47s  %s",($cnt * 16),$h,$str);
+		$display[$cnt] = sprintf "0x%08x: %-47s  %s",($cnt * 16),$h,$str;
 	}
 	return @display;
 }

@@ -1,4 +1,4 @@
-
+#! c:\perl\bin\perl.exe
 #-----------------------------------------------------------
 # del.pl
 # 
@@ -109,7 +109,7 @@ sub parseValueNode {
 	if (($ofs + 0x14 + $name_len) <= length($data)) {
 		$name = substr($data,$ofs + 0x14,$name_len);
 		::rptMsg("Value Name: ".$name);
-		::rptMsg(sprintf "Data Length: 0x%x  Data Offset: 0x%x  Data Type: ".$data_types{$data_type},$data_len,$data_ofs);
+		::rptMsg(sprintf "Data Length: 0x%x  Data Offset: 0x%x  Data Type: %s",$data_types{$data_type},$data_len,$data_ofs);
 	}
 }
 

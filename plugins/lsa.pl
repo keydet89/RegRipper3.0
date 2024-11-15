@@ -77,7 +77,7 @@ sub pluginmain {
 			foreach my $v (@pkgs) {
 				eval {
 					my $d = $key->get_value($v)->get_data();
-					::rptMsg(sprintf "%-25s: ".$d,$v);
+					::rptMsg(sprintf "%-25s: %s",$v,$d);
 				};
 			}
 			::rptMsg("");

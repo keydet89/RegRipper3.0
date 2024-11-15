@@ -302,7 +302,7 @@ sub traverse {
  			my $str = $item{uritime}."|REG|||ShellBags/URI - ".$resource;
  			::rptMsg($str);
  		}
-# 		my $str = sprintf "%-20s |%-20s | %-20s | %-20s | %-20s |".$resource,$item{mrutime_str},$m,$a,$c,$o;
+# 		my $str = sprintf "%-20s |%-20s | %-20s | %-20s | %-20s |",$item{mrutime_str},$m,$a,$c,$o,$resource;
 # 		::rptMsg($str);
  		
  		if ($item{name} eq "" || $item{name} =~ m/\\$/) {
@@ -849,7 +849,7 @@ sub printData {
 			}
 		}
 		my $h = join(' ',@s3);
-		::rptMsg(sprintf "0x%08x: %-47s  ".$str,($cnt * 16),$h);
+		::rptMsg(sprintf "0x%08x: %-47s  %s",($cnt * 16),$h,$str);
 	}
 }
 

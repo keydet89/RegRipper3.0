@@ -437,7 +437,7 @@ sub parseShellItem {
 		
 		my $dat = substr($data,$cnt,$sz);
 		my $type = unpack("C",substr($dat,2,1));
-#		::rptMsg(sprintf "  Size: ".$sz."  Type: 0x%x",$type);
+#		::rptMsg(sprintf "  Size: %u  Type: 0x%x",$sz,$type);
 		
 		if ($type == 0x1F) {
 # System Folder 			

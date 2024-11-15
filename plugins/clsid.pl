@@ -89,27 +89,27 @@ sub pluginmain {
 					
 			  	eval {
 			  		my $proc = $s->get_subkey("LocalServer32")->get_value("")->get_data();
-						::rptMsg(sprintf "%-20s  ".$name."\\LocalServer32 ".$proc, ::getDateFromEpoch($s->get_subkey("LocalServer32")->get_timestamp())."Z");
+						::rptMsg(sprintf "%-20s  %s\\LocalServer32 %s", ::getDateFromEpoch($s->get_subkey("LocalServer32")->get_timestamp())."Z",$name,$proc);
 			  	};
 
 			  	eval {
 			  		my $proc = $s->get_subkey("InprocServer32")->get_value("")->get_data();
-						::rptMsg(sprintf "%-20s  ".$name."\\InprocServer32: ".$proc, ::getDateFromEpoch($s->get_subkey("InprocServer32")->get_timestamp())."Z");
+						::rptMsg(sprintf "%-20s  %s\\InprocServer32: %s", ::getDateFromEpoch($s->get_subkey("InprocServer32")->get_timestamp())."Z",$name,$proc);
 			  	};
 			  						
 					eval {
 			  		my $prog = $s->get_subkey("ProgID")->get_value("")->get_data();
-						::rptMsg(sprintf "%-20s  ".$name."\\ProgID: ".$prog, ::getDateFromEpoch($s->get_subkey("ProgID")->get_timestamp())."Z");
+						::rptMsg(sprintf "%-20s  %s\\ProgID: %s", ::getDateFromEpoch($s->get_subkey("ProgID")->get_timestamp())."Z",$name,$prog);
 			  	};
 					
 					eval {
 			  		my $treat = $s->get_subkey("TreatAs")->get_value("")->get_data();
-						::rptMsg(sprintf "%-20s  ".$name."\\TreatAs: ".$treat, ::getDateFromEpoch($s->get_subkey("TreatAs")->get_timestamp())."Z");
+						::rptMsg(sprintf "%-20s  %s\\TreatAs: %s", ::getDateFromEpoch($s->get_subkey("TreatAs")->get_timestamp())."Z",$name,$treat);
 			  	};
 
 					eval {
 			  		my $scriptlet = $s->get_subkey("ScriptletURL")->get_value("")->get_data();
-						::rptMsg(sprintf "%-20s  ".$name."\\ScriptletURL: ".$scriptlet, ::getDateFromEpoch($s->get_subkey("ScriptletURL")->get_timestamp())."Z");
+						::rptMsg(sprintf "%-20s  %s\\ScriptletURL: %s", ::getDateFromEpoch($s->get_subkey("ScriptletURL")->get_timestamp())."Z",$name,$scriptlet);
 			  	};
 			  	::rptMsg("");
 				}
