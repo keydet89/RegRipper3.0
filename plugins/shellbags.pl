@@ -339,8 +339,8 @@ sub traverse {
  			$mft = $item{mft_rec_num}."/".$item{mft_seq_num};
  		}
  		
-# 		my $str = sprintf "%-20s |%-20s | %-20s | %-20s | %-20s |".$resource,$item{mrutime_str},$m,$a,$c,$o;
-		my $str = sprintf "%-20s |%-20s | %-20s | %-20s | %-20s | %-12s |".$resource." [".$item{path}."]",$item{mrutime_str},$m,$a,$c,$o,$mft;
+# 		my $str = sprintf "%-20s |%-20s | %-20s | %-20s | %-20s |",$item{mrutime_str},$m,$a,$c,$o,$resource;
+		my $str = sprintf "%-20s |%-20s | %-20s | %-20s | %-20s | %-12s |%s [%s]",$item{mrutime_str},$m,$a,$c,$o,$mft,$resource,$item{path};
  		::rptMsg($str);
  		
  		if ($item{name} eq "" || $item{name} =~ m/\\$/) {

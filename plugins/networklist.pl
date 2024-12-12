@@ -126,7 +126,7 @@ sub pluginmain {
 			
 # Now, display the information			
 			foreach my $n (keys %nl) {
-				my $str = sprintf "%-15s Gateway Mac: ".$nl{$n}{DefaultGatewayMac},$nl{$n}{ProfileName};
+				my $str = sprintf "%-15s Gateway Mac: %s",$nl{$n}{ProfileName},$nl{$n}{DefaultGatewayMac};
 				::rptMsg($nl{$n}{ProfileName});
 				::rptMsg("  Key LastWrite    : ".::getDateFromEpoch($nl{$n}{LastWrite})."Z");
 				::rptMsg("  DateLastConnected: ".$nl{$n}{DateLastConnected});

@@ -71,7 +71,7 @@ sub pluginmain {
 							foreach my $val (@vals) {
 								my $name = $val->get_name();
 								my $data = $val->get_data();
-								::rptMsg(sprintf "%-80s  ".$data,$name);
+								::rptMsg(sprintf "%-80s  %s",$name,$data);
 							}
 						}
 					}
