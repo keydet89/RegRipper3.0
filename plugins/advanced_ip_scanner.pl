@@ -32,8 +32,7 @@ sub getHive   {return $config{hive};}
 sub getVersion{return $config{version};}
 
 sub getShortDescr {
-	return "Advanced IP Scanner (Famatech) locale, scan history and update-check values
-MITRE ATT&CK: T1046 (Network Service Scanning), T1595 (Active Scanning)";
+	return "Advanced IP Scanner (Famatech) locale, scan history and update-check values MITRE ATT&CK: T1046 (Network Service Scanning), T1595 (Active Scanning)";
 }
 
 sub getRefs {
@@ -211,6 +210,7 @@ sub pluginmain {
 	my $hive  = shift;
 
 	::logMsg("Launching advanced_ip_scanner v.".$VERSION);
+	::rptMsg("advanced_ip_scanner v.".$VERSION); # banner
 	::rptMsg("(".getHive().") ".getShortDescr()."\n");
 
 	my $reg      = Parse::Win32Registry->new($hive);
