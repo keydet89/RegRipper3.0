@@ -29,7 +29,7 @@ my %config = (hive          => "System",
 
 sub getConfig{return %config}
 sub getShortDescr {
-	return "Parse files from System hive BAM Services";	
+	return "Parse files from System hive DAM Services";
 }
 sub getDescr{}
 sub getRefs {}
@@ -43,8 +43,8 @@ my $str = "";
 sub pluginmain {
 	my $class = shift;
 	my $hive = shift;
-	::logMsg("Launching bam v.".$VERSION);
-	::rptMsg("bam v.".$VERSION); # banner
+	::logMsg("Launching dam v.".$VERSION);
+	::rptMsg("dam v.".$VERSION); # banner
   ::rptMsg("(".$config{hive}.") ".getShortDescr()."\n"); # banner 
 	my $reg = Parse::Win32Registry->new($hive);
 	my $root_key = $reg->get_root_key;
