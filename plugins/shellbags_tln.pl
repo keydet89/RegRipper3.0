@@ -3,7 +3,7 @@
 # RR plugin to parse (Vista, Win7/Win2008R2) shell bags
 #
 # History:
-#   20260727 - fix infinite loop issues, apply change from shellbags.pl plugin
+#   20260727 - Apply change from shellbags.pl plugin (support for more shell item type)
 #   20180702 - code updates, including to parseGUID() function
 #   20120810 - added support for parsing Network types; added handling of 
 #              offsets for Folder types (ie, transition to long name offset),
@@ -193,9 +193,6 @@ sub pluginmain {
 #		::rptMsg(sprintf "%-20s |%-20s | %-20s | %-20s | %-20s |"."-" x 12,"-" x 12,"-" x 12,"-" x 12,"-" x 12,"-" x 12);
 		traverse($key,\%item);
 	}
-	else {
-		::rptMsg($key_path." not found.");
-	}
 }
 
 sub traverse {
@@ -286,7 +283,6 @@ sub traverse {
  		else {
 # Unknown type
 			$item{name} = sprintf "Unknown Type (0x%x)",$type; 	
-			probe($values{$v});
  		}
  		
  		if ($item{name} =~ m/\.zip$/ && $type == 0x32) {
@@ -316,20 +312,22 @@ sub traverse {
  		if (exists $item{filesize}) {
  			$resource .= " [".$item{filesize}."]";
  		}
-
+ 		
 # TLN output 		
  		if (exists $item{mrutime}) {
  			my $str = $item{mrutime}."|REG|||ShellBags - ".$resource;
  			::rptMsg($str);
- 		}
- 		
+		}
+
  		if (exists $item{uritime}) {
  			my $str = $item{uritime}."|REG|||ShellBags/URI - ".$resource;
  			::rptMsg($str);
  		}
-# 		my $str = sprintf "%-20s |%-20s | %-20s | %-20s | %-20s |",$item{mrutime_str},$m,$a,$c,$o,$resource;
-		my $str = sprintf "%-20s |%-20s | %-20s | %-20s | %-20s | %-12s |%s [%s]",$item{mrutime_str},$m,$a,$c,$o,$mft,$resource,$item{path};
- 		::rptMsg($str);
+		if (exists $item{mft_rec_num}) {
+			my $mft = $item{mft_rec_num}."/".$item{mft_seq_num};
+ 			my $str = $item{mrutime}."|REG|||ShellBags/MFT File Ref - ".$mft." - ".$resource;
+			::rptMsg($str);
+ 		}
  		
  		if ($item{name} eq "" || $item{name} =~ m/\\$/) {
  			
@@ -456,20 +454,6 @@ sub parseVariableEntry {
 	else {
 		$item{name} = "Unknown Type";	
 	}
-	return %item;
-}
-
-#-----------------------------------------------------------
-# parseNetworkEntry()
-#
-#-----------------------------------------------------------
-sub parseNetworkEntry {
-	my $data = shift;
-	my %item = ();	
-	$item{type} = unpack("C",substr($data,2,1));
-	
-	my @n = split(/\00/,substr($data,4,length($data) - 4));
-	$item{name} = $n[0];
 	return %item;
 }
 
@@ -752,68 +736,105 @@ sub parseFolderEntry {
 	my @m = unpack("vv",substr($data,$ofs_mdate,4));
 	($item{mtime_str},$item{mtime}) = convertDOSDate($m[0],$m[1]);
 	
-# Need to read in short name; nul-term ASCII
-#	$item{shortname} = (split(/\00/,substr($data,12,length($data) - 12),2))[0];
-	$ofs_shortname = $ofs_mdate + 6;	
-	my $tag = 1;
-	my $cnt = 0;
-	my $str = "";
-	while($tag && ($ofs_shortname + $cnt) < length($data)) {
-		my $s = substr($data,$ofs_shortname + $cnt,1);
-		if ($s =~ m/\00/ && ((($cnt + 1) % 2) == 0)) {
-			$tag = 0;
+# DEBUG ------------------------------------------------
+# Added 20160706 based on sample data provided by J. Poling	
+	
+	if (length($data) < 0x30) {
+# start at offset 0xE, read in nul-term ASCII string (until "\00" is reached)
+		$ofs_shortname = 0xE;
+		my $tag = 1;
+		my $cnt = 0;
+		my $str = "";
+		while($tag && ($ofs_shortname + $cnt) < length($data)) {
+			my $s = substr($data,$ofs_shortname + $cnt,1);
+			if ($s =~ m/\00/) {
+				$tag = 0;
+			}
+			else {
+				$str .= $s;
+				$cnt++;
+			}
 		}
-		else {
-			$str .= $s;
-			$cnt++;
-		}
-	}
-#	$str =~ s/\00//g;
-	my $shortname = $str;
-	my $ofs = $ofs_shortname + $cnt + 1;
-# Read progressively, 1 byte at a time, looking for 0xbeef	
-	my $tag = 1;
-	my $cnt = 0;
-	while ($tag && ( ($ofs + $cnt + 2) <= length($data) )) {
-		if (unpack("v",substr($data,$ofs + $cnt,2)) == 0xbeef) {
-			$tag = 0;
-		}
-		else {
-			$cnt++;
-		}
-	}
-	$item{extver} = unpack("v",substr($data,$ofs + $cnt - 4,2));
-	$ofs = $ofs + $cnt + 2;
-	
-	my @m = unpack("vv",substr($data,$ofs,4));
-	($item{ctime_str},$item{ctime}) = convertDOSDate($m[0],$m[1]);
-	$ofs += 4;
-	my @m = unpack("vv",substr($data,$ofs,4));
-	($item{atime_str},$item{atime}) = convertDOSDate($m[0],$m[1]);
-	
-	my $jmp;
-	if ($item{extver} == 0x07) {
-		$jmp = 26;
-	}
-	elsif ($item{extver} == 0x08) {
-		$jmp = 30;
-	}
-	elsif ($item{extver} == 0x09) {
-			$jmp = 34;
-	}
-	else {}
-	
-	$ofs += $jmp;
-	
-	my $str = substr($data,$ofs,length($data) - 30);
-	my $longname = (split(/\00\00/,$str,2))[0];
-	$longname =~ s/\00//g;
-	
-	if ($longname ne "") {
-		$item{name} = $longname;
+		$item{name} = $str;
 	}
 	else {
-		$item{name} = $shortname;
+# Need to read in short name; nul-term ASCII
+#	$item{shortname} = (split(/\00/,substr($data,12,length($data) - 12),2))[0];
+		$ofs_shortname = $ofs_mdate + 6;	
+		my $tag = 1;
+		my $cnt = 0;
+		my $str = "";
+		while($tag && ($ofs_shortname + $cnt) < length($data)) {
+			my $s = substr($data,$ofs_shortname + $cnt,1);
+			if ($s =~ m/\00/ && ((($cnt + 1) % 2) == 0)) {
+				$tag = 0;
+			}
+			else {
+				$str .= $s;
+				$cnt++;
+			}
+		}
+#	$str =~ s/\00//g;
+		my $shortname = $str;
+		my $ofs = $ofs_shortname + $cnt + 1;
+# Read progressively, 1 byte at a time, looking for 0xbeef	
+		my $tag = 1;
+		my $cnt = 0;
+		while ($tag && ( ($ofs + $cnt + 2) <= length($data) )) {
+			if (unpack("v",substr($data,$ofs + $cnt,2)) == 0xbeef) {
+				$tag = 0;
+			}
+			else {
+				$cnt++;
+			}
+		}
+		$item{extver} = unpack("v",substr($data,$ofs + $cnt - 4,2));
+#	printf "Version: 0x%x\n",$item{extver};
+		$ofs = $ofs + $cnt + 2;
+	
+		my @m = unpack("vv",substr($data,$ofs,4));
+		($item{ctime_str},$item{ctime}) = convertDOSDate($m[0],$m[1]);
+		$ofs += 4;
+		my @m = unpack("vv",substr($data,$ofs,4));
+		($item{atime_str},$item{atime}) = convertDOSDate($m[0],$m[1]);
+	
+		my $jmp;
+		if ($item{extver} == 0x03) {
+			$jmp = 8;
+		}
+		elsif ($item{extver} == 0x07) {
+			$jmp = 26;
+		}
+		elsif ($item{extver} == 0x08) {
+			$jmp = 30;
+		}
+		elsif ($item{extver} == 0x09) {
+			$jmp = 34;
+		}
+		else {}
+	
+		if ($item{type} == 0x31 && $item{extver} >= 0x07) {
+			my @n = unpack("Vvv",substr($data,$ofs + 8, 8));
+			if ($n[2] != 0) {
+				$item{mft_rec_num} = getNum48($n[0],$n[1]);
+				$item{mft_seq_num} = $n[2];	
+#			::rptMsg("MFT: ".$item{mft_rec_num}."/".$item{mft_seq_num});
+#			probe($data);
+			}
+		}
+	
+		$ofs += $jmp;
+	
+		my $str = substr($data,$ofs,length($data) - 30);
+		my $longname = (split(/\00\00/,$str,2))[0];
+		$longname =~ s/\00//g;
+	
+		if ($longname ne "") {
+			$item{name} = $longname;
+		}
+		else {
+			$item{name} = $shortname;
+		}
 	}
 	return %item;
 }
@@ -988,66 +1009,18 @@ sub shellItem0x52 {
 }
 
 #-----------------------------------------------------------
-# probe()
-#
-# Code the uses printData() to insert a 'probe' into a specific
-# location and display the data
-#
-# Input: binary data of arbitrary length
-# Output: Nothing, no return value.  Displays data to the console
+# getNum48()
+# borrowed from David Cowen's code
 #-----------------------------------------------------------
-sub probe {
-	my $data = shift;
-	my @d = printData($data);
-	::rptMsg("");
-	foreach (0..(scalar(@d) - 1)) {
-		::rptMsg($d[$_]);
+sub getNum48 {
+	my $n1 = shift;
+	my $n2 = shift;
+	if ($n2 == 0) {
+		return $n1;
 	}
-	::rptMsg("");	
-}
-
-#-----------------------------------------------------------
-# printData()
-# subroutine used primarily for debugging; takes an arbitrary
-# length of binary data, prints it out in hex editor-style
-# format for easy debugging
-#
-# Usage: see probe()
-#-----------------------------------------------------------
-sub printData {
-	my $data = shift;
-	my $len = length($data);
-	my $tag = 1;
-	my $cnt = 0;
-	
-	my $loop = $len/16;
-	$loop++ if ($len%16);
-	
-	foreach my $cnt (0..($loop - 1)) {
-#	while ($tag) {
-		my $left = $len - ($cnt * 16);
-		
-		my $n;
-		($left < 16) ? ($n = $left) : ($n = 16);
-
-		my $seg = substr($data,$cnt * 16,$n);
-		my @str1 = split(//,unpack("H*",$seg));
-
-		my @s3;
-		my $str = "";
-
-		foreach my $i (0..($n - 1)) {
-			$s3[$i] = $str1[$i * 2].$str1[($i * 2) + 1];
-			
-			if (hex($s3[$i]) > 0x1f && hex($s3[$i]) < 0x7f) {
-				$str .= chr(hex($s3[$i]));
-			}
-			else {
-				$str .= "\.";
-			}
-		}
-		my $h = join(' ',@s3);
-		::rptMsg(sprintf "0x%08x: %-47s  %s",($cnt * 16),$h,$str);
+	else {
+		$n2 = ($n2 *16777216);
+		return $n1 + $n2;
 	}
 }
 
