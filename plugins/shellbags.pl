@@ -3,6 +3,7 @@
 # RR plugin to parse (Vista, Win7/Win2008R2) shell bags
 #
 # History:
+#   20260727 - fix infinite loop issues
 #   20200428 - updated output date format
 #   20190715 - updated to parse WPD devices better
 #   20180702 - update to parseGUID function
@@ -52,7 +53,7 @@ my %config = (hive          => "USRCLASS\.DAT",
               hasShortDescr => 1,
               hasDescr      => 0,
               hasRefs       => 0,
-              version       => 20200428);
+              version       => 20260727);
 
 sub getConfig{return %config}
 
@@ -456,7 +457,7 @@ sub parseVariableEntry {
 		my $t = 1;
 		while ($t) {
 			my $i = substr($data,$o,1);
-			if ($i =~ m/\00/) {
+			if ($i =~ m/\00/ or $i eq '') {
 				$t = 0;
 			}
 			else {
@@ -468,20 +469,6 @@ sub parseVariableEntry {
 	else {
 		$item{name} = "Unknown Type";	
 	}
-	return %item;
-}
-
-#-----------------------------------------------------------
-# parseNetworkEntry()
-#
-#-----------------------------------------------------------
-sub parseNetworkEntry {
-	my $data = shift;
-	my %item = ();	
-	$item{type} = unpack("C",substr($data,2,1));
-	
-	my @n = split(/\00/,substr($data,4,length($data) - 4));
-	$item{name} = $n[0];
 	return %item;
 }
 
@@ -773,7 +760,7 @@ sub parseFolderEntry {
 		my $tag = 1;
 		my $cnt = 0;
 		my $str = "";
-		while($tag) {
+		while($tag && ($ofs_shortname + $cnt) < length($data)) {
 			my $s = substr($data,$ofs_shortname + $cnt,1);
 			if ($s =~ m/\00/) {
 				$tag = 0;
@@ -782,7 +769,7 @@ sub parseFolderEntry {
 				$str .= $s;
 				$cnt++;
 			}
-		}	
+		}
 		$item{name} = $str;
 	}
 	else {
@@ -792,7 +779,7 @@ sub parseFolderEntry {
 		my $tag = 1;
 		my $cnt = 0;
 		my $str = "";
-		while($tag) {
+		while($tag && ($ofs_shortname + $cnt) < length($data)) {
 			my $s = substr($data,$ofs_shortname + $cnt,1);
 			if ($s =~ m/\00/ && ((($cnt + 1) % 2) == 0)) {
 				$tag = 0;
@@ -808,7 +795,7 @@ sub parseFolderEntry {
 # Read progressively, 1 byte at a time, looking for 0xbeef	
 		my $tag = 1;
 		my $cnt = 0;
-		while ($tag) {
+		while ($tag && ( ($ofs + $cnt + 2) <= length($data) )) {
 			if (unpack("v",substr($data,$ofs + $cnt,2)) == 0xbeef) {
 				$tag = 0;
 			}
@@ -912,7 +899,7 @@ sub parseFolderEntry2 {
 	my $ofs = 0;
 	my $tag = 1;
 
-	while ($tag) {
+	while ($tag && ($ofs + 2) <= length($data)) {
 		if (unpack("v",substr($data,$ofs,2)) == 0xbeef) {
 			$tag = 0;
 		}
@@ -1012,7 +999,7 @@ sub shellItem0x52 {
 	my $tag = 1;
 	my $cnt = 0;
 	
-	while ($tag) {
+	while ($tag && (0x32 + $cnt + 2) <= length($data)) {
 		$d = substr($data,0x32 + $cnt,2);
 		if (unpack("v",$d) == 0) {
 			$tag = 0;
@@ -1021,7 +1008,7 @@ sub shellItem0x52 {
 			$item{name} .= $d;
 			$cnt += 2;
 		}
-	}	
+	}
 	$item{name} =~ s/\00//g;
 	
 	if ($item{subtype} < 3) {
