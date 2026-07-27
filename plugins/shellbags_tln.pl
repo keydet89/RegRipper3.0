@@ -3,6 +3,7 @@
 # RR plugin to parse (Vista, Win7/Win2008R2) shell bags
 #
 # History:
+#   20260727 - fix infinite loop issues, apply change from shellbags.pl plugin
 #   20180702 - code updates, including to parseGUID() function
 #   20120810 - added support for parsing Network types; added handling of 
 #              offsets for Folder types (ie, transition to long name offset),
@@ -43,12 +44,12 @@ my %config = (hive          => "USRCLASS\.DAT",
               hasShortDescr => 1,
               hasDescr      => 0,
               hasRefs       => 0,
-              version       => 20180702);
+              version       => 20260727);
 
 sub getConfig{return %config}
 
 sub getShortDescr {
-	return "Shell/BagMRU traversal in Win7 USRCLASS\.DAT hives";	
+	return "Shell/BagMRU traversal in Win7+ USRCLASS\.DAT hives";	
 }
 sub getDescr{}
 sub getRefs {}
@@ -69,6 +70,7 @@ my %cp_guids = ("{bb64f8a7-bee7-4e1a-ab8d-7d8273f7fdb6}" => "Action Center",
     "{e2e7934b-dce5-43c4-9576-7fe4f75e7480}" => "Date and Time",
     "{00c6d95f-329c-409a-81d7-c46c66ea7f33}" => "Default Location",
     "{17cd9488-1228-4b2f-88ce-4298e93e0966}" => "Default Programs",
+    "{b4bfcc3a-db2c-424c-b029-7fe99a87c641}" => "Desktop",
     "{37efd44d-ef8d-41b1-940d-96973a50e9e0}" => "Desktop Gadgets",
     "{74246bfc-4c96-11d0-abef-0020af6b0b7a}" => "Device Manager",
     "{a8a91a66-3a7d-4424-8d24-04e180695c7a}" => "Devices and Printers",
@@ -134,18 +136,23 @@ my %folder_types = ("{724ef170-a42d-4fef-9f26-b60e846fba4f}" => "Administrative 
     "{1ac14e77-02e7-4e5d-b744-2eb1ae5198b7}" => "CSIDL_SYSTEM",
     "{b4bfcc3a-db2c-424c-b029-7fe99a87c641}" => "Desktop",
     "{7b0db17d-9cd2-4a93-9733-46cc89022e7c}" => "Documents Library",
+    "{a8cdff1c-4878-43be-b5fd-f8091c1c60d0}" => "Documents",
     "{fdd39ad0-238f-46af-adb4-6c85480369c7}" => "Documents",
     "{374de290-123f-4565-9164-39c4925e467b}" => "Downloads",
+    "{088e3905-0323-4b02-9826-5d99428e115f}" => "Downloads",
     "{de61d971-5ebc-4f02-a3a9-6c82895e5c04}" => "Get Programs",
     "{a305ce99-f527-492b-8b1a-7e76fa98d6e4}" => "Installed Updates",
     "{871c5380-42a0-1069-a2ea-08002b30309d}" => "Internet Explorer (Homepage)",
     "{031e4825-7b94-4dc3-b131-e946b44c8dd5}" => "Libraries",
+    "{2112ab0a-c86a-4ffe-a368-0de96e47012e}" => "Music",
+    "{1cf1260c-4dd0-4ebb-811f-33c572699fde}" => "Music",
     "{4bd8d571-6d19-48d3-be97-422220080e43}" => "Music",
     "{20d04fe0-3aea-1069-a2d8-08002b30309d}" => "My Computer",
     "{450d8fba-ad25-11d0-98a8-0800361b1103}" => "My Documents",
     "{ed228fdf-9ea8-4870-83b1-96b02cfe0d52}" => "My Games",
     "{208d2c60-3aea-1069-a2d7-08002b30309d}" => "My Network Places",
     "{f02c1a0d-be21-4350-88b0-7367fc96ef3c}" => "Network", 
+    "{3add1653-eb32-4cb0-bbd7-dfa0abb5acca}" => "Pictures",
     "{33e28130-4e1e-4676-835a-98395c3bc3bb}" => "Pictures",
     "{a990ae9f-a03b-4e80-94bc-9912d7504104}" => "Pictures",
     "{7c5a40ef-a0fb-4bfc-874a-c0f2e0b9fa8e}" => "Program Files (x86)",
@@ -162,12 +169,14 @@ my %folder_types = ("{724ef170-a42d-4fef-9f26-b60e846fba4f}" => "Administrative 
     "{9e52ab10-f80d-49df-acb8-4330f5687855}" => "Temporary Burn Folder",
     "{f3ce0f7c-4901-4acc-8648-d5d44b04ef8f}" => "Users Files",
     "{59031a47-3f72-44a7-89c5-5595fe6b30ee}" => "Users",
+    "{a0953c92-50dc-43bf-be83-3742fed03c9c}" => "Videos",
+    "{b5947d7f-b489-4fde-9e77-23780cc610d1}" => "Virtual Machines",
     "{f38bf404-1d43-42f2-9305-67de0b28fc23}" => "Windows");
 
 sub pluginmain {
 	my $class = shift;
 	my $hive = shift;
-#	::logMsg("Launching shellbags_tln v.".$VERSION);
+	::logMsg("Launching shellbags_tln v.".$VERSION);
 	my %item = ();
 
 	my $reg = Parse::Win32Registry->new($hive);
@@ -223,6 +232,7 @@ sub traverse {
  		elsif ($type == 0x00) {
 # Variable/Property Sheet 			
  			%item = parseVariableEntry($values{$v});	
+# 			probe($values{$v});	
  		}
  		elsif ($type == 0x01) {
 #  			
@@ -232,13 +242,17 @@ sub traverse {
 # System Folder 			
  			%item = parseSystemFolderEntry($values{$v});
  		}
+ 		elsif ($type == 0x2a) {
+ 			$item{name} = substr($values{$v},0x3,3);
+ 		}
  		elsif ($type == 0x2e) {
 # Device
-			%item = parseDeviceEntry($values{$v}); 			
+			%item = parseDeviceEntry($values{$v});		
  		}
  		elsif ($type == 0x2F) {
 # Volume (Drive Letter) 			
  			%item = parseDriveEntry($values{$v});
+ 
  		}
  		elsif ($type == 0xc3 || $type == 0x41 || $type == 0x42 || $type == 0x46 || $type == 0x47) {
 # Network stuff
@@ -253,6 +267,10 @@ sub traverse {
  		elsif ($type == 0x31 || $type == 0x32 || $type == 0xb1 || $type == 0x74) {
 # Folder or Zip File			
  			%item = parseFolderEntry($values{$v}); 
+# 			probe($values{$v});
+ 		}
+ 		elsif ($type == 0x35) {
+ 			%item = parseFolderEntry2($values{$v});
  		}
  		elsif ($type == 0x71) {
 # Control Panel
@@ -262,9 +280,13 @@ sub traverse {
 # URI type
 			%item = parseURIEntry($values{$v});		
  		}
+ 		elsif ($type == 0x52) {
+ 			%item = shellItem0x52($values{$v});
+ 		}
  		else {
 # Unknown type
-			$item{name} = sprintf "Unknown Type (0x%x)",$type; 			
+			$item{name} = sprintf "Unknown Type (0x%x)",$type; 	
+			probe($values{$v});
  		}
  		
  		if ($item{name} =~ m/\.zip$/ && $type == 0x32) {
@@ -287,7 +309,10 @@ sub traverse {
  		(exists $item{ctime_str} && $item{ctime_str} ne "0") ? ($c = $item{ctime_str}) : ($c = "");
  		(exists $item{datetime} && $item{datetime} ne "N/A") ? ($o = $item{datetime}) : ($o = "");
  		
- 		my $resource = ${$parent}{path}.$item{name};
+# 		my $resource = ${$parent}{path}.$item{name};
+		$item{name} = ${$parent}{name}.$item{name};
+ 		$item{path} = ${$parent}{path}.$v."\\";
+		my $resource = $item{name};
  		if (exists $item{filesize}) {
  			$resource .= " [".$item{filesize}."]";
  		}
@@ -303,7 +328,8 @@ sub traverse {
  			::rptMsg($str);
  		}
 # 		my $str = sprintf "%-20s |%-20s | %-20s | %-20s | %-20s |",$item{mrutime_str},$m,$a,$c,$o,$resource;
-# 		::rptMsg($str);
+		my $str = sprintf "%-20s |%-20s | %-20s | %-20s | %-20s | %-12s |%s [%s]",$item{mrutime_str},$m,$a,$c,$o,$mft,$resource,$item{path};
+ 		::rptMsg($str);
  		
  		if ($item{name} eq "" || $item{name} =~ m/\\$/) {
  			
@@ -311,7 +337,7 @@ sub traverse {
  		else {
  			$item{name} = $item{name}."\\";
  		}
- 		$item{path} = ${$parent}{path}.$item{name};
+# 		$item{path} = ${$parent}{path}.$item{name};
  		traverse($key->get_subkey($v),\%item);
  	}
 }
@@ -353,9 +379,9 @@ sub parseVariableEntry {
 # Ref: http://msdn.microsoft.com/en-us/library/aa965725(v=vs.85).aspx	  	 	
 	  	my $stuff = $segs{"{b725f130-47ef-101a-a5f1-02608c9eebac}"};
 
-	  	my $tag = 1;
+	  	my $t = 1;
 	  	my $cnt = 0x10;
-	  	while($tag) {
+	  	while($t) {
 	  		my $sz = unpack("V",substr($stuff,$cnt,4));
 	  		my $id = unpack("V",substr($stuff,$cnt + 4,4));
 #--------------------------------------------------------------
@@ -366,7 +392,7 @@ sub parseVariableEntry {
 # 0x0c - size
 #--------------------------------------------------------------	  	
 	  		if ($sz == 0x00) {
-	  			$tag = 0;
+	  			$t = 0;
 	  			next;
 	  		}
 	  		elsif ($id == 0x0a) {
@@ -379,33 +405,29 @@ sub parseVariableEntry {
 	  		$cnt += $sz;
 	  	}
 	  }
-	  
-#		if (exists $segs{"{5cbf2787-48cf-4208-b90e-ee5e5d420294}"}) {
-#			my $stuff = $segs{"{5cbf2787-48cf-4208-b90e-ee5e5d420294}"};
-#	  	my $tag = 1;
-#	  	my $cnt = 0x10;
-#	  	while($tag) {
-#	  		my $sz = unpack("V",substr($stuff,$cnt,4));
-#	  		my $id = unpack("V",substr($stuff,$cnt + 4,4));
-#	  		
-#	  		if ($sz == 0x00) {
-#	  			$tag = 0;
-#	  			next;
-#	  		}
-#	  		elsif ($id == 0x19) {
-#	  			
-#	  			my $num = unpack("V",substr($stuff,$cnt + 13,4));
-#	  			my $str = substr($stuff,$cnt + 13 + 4,($num * 2));
-#	  			$str =~ s/\00//g;
-#	  			$item{name} = $str;
-#	  		}
-#	  		$cnt += $sz;
-#	  	}
-#		}
+	 
 	}
 	elsif (substr($data,4,4) eq "AugM") {
 		%item = parseFolderEntry($data);
 	}
+# Code for Windows Portable Devices
+# Added 20190715
+	elsif (parseGUID(substr($data,42,16)) eq "{27e2e392-a111-48e0-ab0c-e17705a05f85}") {
+		my ($n0, $n1, $n2) = unpack("VVV",substr($data,62,12));
+	
+		my $n0_name = substr($data,0x4A,($n0 * 2));
+		$n0_name =~ s/\00//g;
+		
+		my $n1_name = substr($data,(0x4A + ($n0 * 2)),($n1 * 2));
+		$n1_name =~ s/\00//g;
+		
+		if ($n0_name eq "") {
+			$item{name} = $n1_name;
+		}
+		else {
+			$item{name} = $n0_name;
+		}
+	}	
 # Following two entries are for Device Property data	
 	elsif ($tag == 0x7b || $tag == 0xbb || $tag == 0xfb) {
 		my ($sz1,$sz2,$sz3) = unpack("VVV",substr($data,0x3e,12));
@@ -416,6 +438,20 @@ sub parseVariableEntry {
 		my ($sz1,$sz2,$sz3,$sz4) = unpack("VVVV",substr($data,0x26,16));
 		$item{name} = substr($data,0x36,$sz1 * 2);
 		$item{name} =~ s/\00//g;
+	}
+	elsif (unpack("v",substr($data,6,2)) == 0x05) {
+		my $o = 0x26;
+		my $t = 1;
+		while ($t) {
+			my $i = substr($data,$o,1);
+			if ($i =~ m/\00/ or $i eq '') {
+				$t = 0;
+			}
+			else {
+				$item{name} .= $i;
+				$o++;
+			}
+		}	
 	}
 	else {
 		$item{name} = "Unknown Type";	
@@ -483,15 +519,39 @@ sub parseZipSubFolderItem {
 
 #-----------------------------------------------------------
 # parse01ShellItem()
-# I honestly have no idea what to do with this data; there's really
-# no reference for or description of the format of this data.  For
-# now, this is just a place holder
+#
+# Updated 20140728
+# https://5c36fb3a2584d3bd2f8d3924d56b4d00d70e8000.googledrive.com/host/0B3fBvzttpiiSajVqblZQT3FYZzg/Windows%20Shell%20Item%20format.pdf
+# http://msdn.microsoft.com/en-us/library/windows/desktop/cc144183(v=vs.85).aspx
 #-----------------------------------------------------------
 sub parse01ShellItem {
 	my $data = shift;
 	my %item = ();
-	$item{type} = unpack("C",substr($data,2,1));;
-	$item{name} = "";
+	
+	my %cat = (0 => "All Control Panel Items",
+	           1 => "Appearance/Personalization",
+	           2 => "Hardware and Sound",
+	           3 => "Network and Internet",
+	           4 => "Sound/Audio",
+	           5 => "System and Security",
+	           6 => "Clock, Lang, Region",
+	           7 => "Ease of Access",
+	           8 => "Programs",
+	           9 => "User Accounts",
+	           10 => "Security Center",
+	           11 => "Mobile PC");
+	           
+	$item{size} = unpack("v",substr($data,0,2));
+	$item{type} = unpack("C",substr($data,2,1));
+	$item{sig} = unpack("V",substr($data,4,4));
+	$item{cat} = unpack("V",substr($data,8,4));
+	if (exists $cat{$item{cat}}) {
+		$item{name} = $cat{$item{cat}};
+	}
+	else {
+		$item{name} = "Unknown Category (".$item{cat}.")";
+	}
+	
 #	($item{val0},$item{val1}) = unpack("VV",substr($data,2,length($data) - 2));
 	return %item;
 }
@@ -514,7 +574,7 @@ sub parseURIEntry {
 	my $proto = substr($data,length($data) - 6, 6);
 	$proto =~ s/\00//g;
 	
-	$item{name} = $proto."://".$uri;
+	$item{name} = $proto."://".$uri." [".gmtime($item{uritime})."]";
 	
 	return %item;
 }
@@ -562,28 +622,19 @@ sub parseGUID {
   my $d3 = unpack("v",substr($data,6,2));
 	my $d4 = unpack("H*",substr($data,8,2));
   my $d5 = unpack("H*",substr($data,10,6));
-  return sprintf "{%08x-%04x-%04x-$d4-$d5}",$d1,$d2,$d3;
-}
+  my $guid = sprintf "{%08x-%04x-%04x-$d4-$d5}",$d1,$d2,$d3;
 
-#-----------------------------------------------------------
-#
-#-----------------------------------------------------------
-#sub parseDeviceEntry {
-#	my $data = shift;
-#	my %item = ();
-#	
-#	my $userlen = unpack("V",substr($data,30,4));
-#	my $devlen  = unpack("V",substr($data,34,4));
-#	
-#	my $user    = substr($data,0x28,$userlen * 2);
-#	$user =~ s/\00//g;
-#	
-#	my $dev = substr($data,0x28 + ($userlen * 2),$devlen * 2);
-#	$dev =~ s/\00//g;
-#	
-#	$item{name} = $user;
-#	return %item;
-#}
+  if (exists $cp_guids{$guid}) {
+  	return "CLSID_".$cp_guids{$guid};
+  }
+  elsif (exists $folder_types{$guid}) {
+  	return "CLSID_".$folder_types{$guid};
+  }
+  else {
+  	return $guid;
+  }
+ 
+}
 
 #-----------------------------------------------------------
 #
@@ -672,7 +723,7 @@ sub parseControlPanelEntry {
 #
 #-----------------------------------------------------------
 sub parseFolderEntry {
-	my $data     = shift;
+	my $data = shift;
 	my %item = ();
 	
 	$item{type} = unpack("C",substr($data,2,1));
@@ -707,7 +758,7 @@ sub parseFolderEntry {
 	my $tag = 1;
 	my $cnt = 0;
 	my $str = "";
-	while($tag) {
+	while($tag && ($ofs_shortname + $cnt) < length($data)) {
 		my $s = substr($data,$ofs_shortname + $cnt,1);
 		if ($s =~ m/\00/ && ((($cnt + 1) % 2) == 0)) {
 			$tag = 0;
@@ -723,7 +774,7 @@ sub parseFolderEntry {
 # Read progressively, 1 byte at a time, looking for 0xbeef	
 	my $tag = 1;
 	my $cnt = 0;
-	while ($tag) {
+	while ($tag && ( ($ofs + $cnt + 2) <= length($data) )) {
 		if (unpack("v",substr($data,$ofs + $cnt,2)) == 0xbeef) {
 			$tag = 0;
 		}
@@ -799,6 +850,63 @@ sub convertDOSDate {
 	}
 }
 
+
+#-----------------------------------------------------------
+# parseFolderEntry2()
+#
+# Initial code for parsing type 0x35 
+#-----------------------------------------------------------
+sub parseFolderEntry2 {
+	my $data     = shift;
+	my %item = ();
+	
+	my $ofs = 0;
+	my $tag = 1;
+
+	while ($tag && ($ofs + 2) <= length($data)) {
+		if (unpack("v",substr($data,$ofs,2)) == 0xbeef) {
+			$tag = 0;
+		}
+		else {
+			$ofs++;
+		}
+	}
+	$item{extver} = unpack("v",substr($data,$ofs - 4,2));
+# Move offset over to end of where the ctime value would be
+	$ofs += 4;
+	
+	my $jmp;
+	if ($item{extver} == 0x03) {
+		$jmp = 8;
+	}
+	elsif ($item{extver} == 0x04) {
+		$jmp = 34;
+	}
+	elsif ($item{extver} == 0x07) {
+		$jmp = 26;
+	}
+	elsif ($item{extver} == 0x08) {
+		$jmp = 30;
+	}
+	else {}
+	
+	$ofs += $jmp;
+	
+	my $str = substr($data,$ofs,length($data) - 30);
+	
+#	::rptMsg(" --- parseFolderEntry2 --- ");
+#	my @d = printData($str);
+#	foreach (0..(scalar(@d) - 1)) {
+#		::rptMsg($d[$_]);
+#	}
+#	::rptMsg("");
+	
+	$item{name} = (split(/\00\00/,$str,2))[0];
+	$item{name} =~ s/\13\20/\2D\00/;
+	$item{name} =~ s/\00//g;
+	
+	return %item;
+}
 #-----------------------------------------------------------
 #
 #-----------------------------------------------------------
@@ -810,11 +918,101 @@ sub parseNetworkEntry {
 	$item{name} = $names[0];
 	return %item;
 }
+
+#-----------------------------------------------------------
+#
+#-----------------------------------------------------------
+sub parseDatePathItem {
+	my $data = shift;
+	my %item = ();
+	$item{datestr} = substr($data,0x18,30);
+	my ($file,$dir) = split(/\00\00/,substr($data,0x44,length($data) - 0x44));
+	$file =~ s/\00//g;
+	$dir =~ s/\00//g;
+	$item{name} = $dir.$file;
+	return %item;	
+}
+
+#-----------------------------------------------------------
+# parseTypex53()
+#-----------------------------------------------------------
+sub parseTypex53 {
+	my $data = shift;
+	my %item = ();
+	
+	my $item1 = parseGUID(substr($data,0x14,16));
+	my $item2 = parseGUID(substr($data,0x24,16));
+	
+	$item{name} = $item1."\\".$item2;
+	
+	return %item;
+}
+
+#-----------------------------------------------------------
+#
+#-----------------------------------------------------------
+sub shellItem0x52 {
+	my $data = shift;
+	my %item = ();
+	my ($d, $ofs,$sz);
+	
+	$item{type}    = unpack("C",substr($data,0x02,1));
+	$item{subtype} = unpack("v",substr($data,0x06,2));
+# First, start at offset 0x32, read 2 bytes at a time until the null
+# terminator is reached.
+	my $tag = 1;
+	my $cnt = 0;
+	
+	while ($tag && (0x32 + $cnt + 2) <= length($data)) {
+		$d = substr($data,0x32 + $cnt,2);
+		if (unpack("v",$d) == 0) {
+			$tag = 0;
+		}
+		else {
+			$item{name} .= $d;
+			$cnt += 2;
+		}
+	}
+	$item{name} =~ s/\00//g;
+	
+	if ($item{subtype} < 3) {
+		$ofs = 0x32 + $cnt + 2;
+	}
+	else {
+		$ofs = 0x32 + $cnt + 8;
+	}
+	$sz = unpack("V",substr($data,$ofs,4));
+	$item{str} = substr($data,$ofs + 4,$sz * 2);
+	$item{str} =~ s/\00//g;
+	return %item;
+}
+
+#-----------------------------------------------------------
+# probe()
+#
+# Code the uses printData() to insert a 'probe' into a specific
+# location and display the data
+#
+# Input: binary data of arbitrary length
+# Output: Nothing, no return value.  Displays data to the console
+#-----------------------------------------------------------
+sub probe {
+	my $data = shift;
+	my @d = printData($data);
+	::rptMsg("");
+	foreach (0..(scalar(@d) - 1)) {
+		::rptMsg($d[$_]);
+	}
+	::rptMsg("");	
+}
+
 #-----------------------------------------------------------
 # printData()
 # subroutine used primarily for debugging; takes an arbitrary
 # length of binary data, prints it out in hex editor-style
 # format for easy debugging
+#
+# Usage: see probe()
 #-----------------------------------------------------------
 sub printData {
 	my $data = shift;
